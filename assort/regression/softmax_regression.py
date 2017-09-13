@@ -1,8 +1,5 @@
 import numpy as np
-import time as t
 
-from pandas import read_csv
-from pandas import get_dummies
 from utils.activations import sigmoid
 from utils.cost_functions import log_loss
 
