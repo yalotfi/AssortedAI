@@ -1,24 +1,8 @@
 import numpy as np
 
 from pandas.io.parsers import read_csv
-
-
-def normalize(X):
-    return (X - np.min(X)) / (np.max(X) - np.min(X))
-
-
-def one_hot_encode(labels, n_classes):
-    """
-    Description: Encode a label vector into a one-hot matrix
-
-    Arguments:
-        labels - column vector with shape =
-    """
-    m_examples = labels.shape[0]  # m, training examples
-    encoded_labels = np.zeros((m_examples, n_classes), dtype='float32')
-    for i in range(m_examples):
-        encoded_labels[i, labels[i]] = 1
-    return encoded_labels
+from preprocessing import one_hot_encode
+from preprocessing import normalize
 
 
 def preprocess(train_path, test_path):
@@ -48,4 +32,3 @@ def preprocess(train_path, test_path):
 
     # Return training tuple for (feature, label) set and test features
     return (X_train_norm, y_train), X_test_norm
-

@@ -1,22 +1,15 @@
 import numpy as np
 import time as t
 
-from preprocessing import preprocess
+from pandas import read_csv
+from pandas import get_dummies
+# from preprocessing import preprocess
 from utils import sigmoid
 from utils import log_loss
 
 
-class LogisticClassifier(object):
-    """
-    Description:
-    A logistic neural network is a perceptron wherein data passes through a
-    linear transformation and a sigmoid function. The result is a prediction
-    which can be assessed with the negative log-liklihood cost function.
-
-    To train this model, gradient descent computes partials derivatives of the
-    loss with respect to each parameter. These gradients determine an update
-    rule to tweak each parameter in a direction that should iteratively reduce
-    the overall error.
+class SoftmaxRegression(object):
+    """Generalized logistic regression for K classes
 
     Attributes:
         hyperparams - python dictionary defining model hyperparameters
@@ -25,11 +18,11 @@ class LogisticClassifier(object):
                 "init_param_bound": float32, range in which to init weights
         n -- feature size, scalar int
         m -- training examples, scalar int
-        n_classes -- number of classes, scalar int
+        k -- number of classes, scalar int
         X -- feature matrix (n, m), np.ndarray
-        Y -- label matrix (n_classes, m), np.ndarray
+        Y -- label matrix (k, m), np.ndarray
                 Could be vector if binary classification
-        w -- weight vector (n, n_classes), np.ndarray
+        w -- weight vector (n, k), np.ndarray
         b -- bias initialized to zero, scalar type float
         cost_cache -- python list storing historical training error
         trained_params -- dictionary storing optimized params
@@ -47,13 +40,32 @@ class LogisticClassifier(object):
         self.hyperparams = hyperparams
         self.n = X.shape[0]
         self.m = X.shape[1]
-        self.n_classes = Y.shape[0]
+        self.k = Y.shape[0]
         self.X = X
         self.Y = Y
         self.w, self.b = self.init_params
         self.cost_cache = []
+        self.trained_params = []
+        self.trained_grads = []
 
     def optimize(self, persist=True, print_cost=True):
+        """Fit softmax regression to training data using model hyperparameters
+
+        Args:
+            persist=True -- save to disk or not, bool
+            print=True -- print cost to console log
+
+        Return:
+            self
+
+        Description:
+            Requires the training iterations for SGD and learning rate which
+            are both used to update and train the model parameters
+
+            SoftmaxClassifier.optimize( ... ) will update the class object's trained
+            gradients and parameter attributes as dictionaries so that they can
+            be accessed later.
+        """
         # Define helper variables: iterations, learning rate
         epochs = self.hyperparams['training_iters']
         alpha = self.hyperparams['learning_rate']
@@ -69,31 +81,29 @@ class LogisticClassifier(object):
                 self.cost_cache.append(cost)
                 print('Error after {} epochs: {}'.format(i + 1, cost))
         # Store optimized parameters
-        trained_params = {
+        self.trained_params = {
             'w': self.w,
             'b': self.b
         }
         # Store optimized gradients
-        trained_grads = {
+        self.trained_grads = {
             'dw': grads['dw'],
             'db': grads['db']
         }
-        return trained_params, trained_grads
+        return self
 
     def predict(self, X, binary=True, binary_threshold=0.5):
-        """
-        Description:
-        Predict labels on a given data set
+        """Predict labels on a given data set
 
         Arguments:
             X -- feature matrix with shape (feature_size, examples), numpy ndarray
             binary -- binary or multiclass classification, bool
             binary_threshold -- probability threshold to pick binary class
         """
-        preds = np.zeros((self.n_classes, self.m))
+        preds = np.zeros((self.k, self.m))
         w = self.trained_params['w']
         b = self.trained_params['b']
-        y_hat = sigmoid(np.dot(w.T, X_train) + b)
+        y_hat = sigmoid(np.dot(w.T, X) + b)
         # If binary classification:
         if binary:
             # Take probability vector, y_hat: output predicted classes
@@ -133,29 +143,44 @@ class LogisticClassifier(object):
     @property
     def init_params(self):
         bound = self.hyperparams['init_param_bound']
-        w = np.random.randn(self.n, self.n_classes) * bound
+        w = np.random.randn(self.n, self.k) * bound
         b = np.zeros((1, 1))
         return w, b
 
 
 def main():
     hyperparams = {
-        "training_iters": 1000,
+        "training_iters": 2500,
         "learning_rate": 0.001,
         "init_param_bound": 0.01
     }
-    train = './data/train.csv'
-    test = './data/test.csv'
+    ######################
+    ## Testing on MNIST ##
+    ######################
+    # train = './data/train.csv'
+    # test = './data/test.csv'
+    # tic = t.time()
+    # (X_train, Y_train), X_test = preprocess(train, test)
+    # toc = t.time() - tic
+    # print("Preprocessing Time: {}\n".format(toc))
+    # print("\tTrain Set:\nfeatures: {} | labels: {}".format(X_train.shape, Y_train.shape))
+    # print("\tTest Set:\nfeatures: {}\n".format(X_test.shape))
+
+    #####################
+    ## Testing on Iris ##
+    #####################
     tic = t.time()
-    (X_train, Y_train), X_test = preprocess(train, test)
+    url = 'https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data'
+    col_names = ['sepal-length', 'sepal-width', 'petal-length', 'petal-width', 'class']
     toc = t.time() - tic
-    print("Preprocessing Time: {}\n".format(toc))
-    print("\tTrain Set:\nfeatures: {} | labels: {}".format(X_train.shape, Y_train.shape))
-    print("\tTest Set:\nfeatures: {}\n".format(X_test.shape))
+    iris = read_csv(url, names=col_names)
+    X = np.array(iris.ix[:, :-1])
+    Y = np.array(get_dummies(iris.ix[:, -1]))
+    print(X.shape)
+    print(Y.shape)
+    print("Download Time: {}\n".format(toc))
 
-    Logit = LogisticClassifier(X_train.T, Y_train.T, hyperparams)
-    # y_preds = Logit.predict(X_train.T, binary=False)
-
+    lr = SoftmaxRegression(X.T, Y.T, hyperparams)
 
 
 if __name__ == '__main__':
