@@ -1,16 +1,13 @@
 import numpy as np
+import time as t
 
 from pandas.io.parsers import read_csv
-from preprocessing import one_hot_encode
-from preprocessing import normalize
+
+from assort.utils.preprocessing import one_hot_encode
+from assort.utils.preprocessing import normalize
 
 
 def preprocess(train_path, test_path):
-    """
-    :argument:
-
-    :rtype: object
-    """
     # Read in DataFrames
     train_csv = read_csv(train_path)
     test_csv = read_csv(test_path)
@@ -32,3 +29,20 @@ def preprocess(train_path, test_path):
 
     # Return training tuple for (feature, label) set and test features
     return (X_train_norm, y_train), X_test_norm
+
+def main():
+    ######################
+    ## Testing on MNIST ##
+    ######################
+    train = './data/train.csv'
+    test = './data/test.csv'
+    tic = t.time()
+    (X_train, Y_train), X_test = preprocess(train, test)
+    toc = t.time() - tic
+    print("Preprocessing Time: {}\n".format(toc))
+    print("\tTrain Set:\nfeatures: {} | labels: {}".format(X_train.shape, Y_train.shape))
+    print("\tTest Set:\nfeatures: {}\n".format(X_test.shape))
+
+
+if __name__ == '__main__':
+    main()

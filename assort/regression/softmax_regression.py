@@ -3,9 +3,8 @@ import time as t
 
 from pandas import read_csv
 from pandas import get_dummies
-# from preprocessing import preprocess
-from utils import sigmoid
-from utils import log_loss
+from utils.activations import sigmoid
+from utils.cost_functions import log_loss
 
 
 class SoftmaxRegression(object):
@@ -21,7 +20,6 @@ class SoftmaxRegression(object):
         k -- number of classes, scalar int
         X -- feature matrix (n, m), np.ndarray
         Y -- label matrix (k, m), np.ndarray
-                Could be vector if binary classification
         w -- weight vector (n, k), np.ndarray
         b -- bias initialized to zero, scalar type float
         cost_cache -- python list storing historical training error
@@ -45,11 +43,11 @@ class SoftmaxRegression(object):
         self.Y = Y
         self.w, self.b = self.init_params
         self.cost_cache = []
-        self.trained_params = []
-        self.trained_grads = []
+        self.trained_params = {}
+        self.trained_grads = {}
 
     def optimize(self, persist=True, print_cost=True):
-        """Fit softmax regression to training data using model hyperparameters
+        """Fit softmax regression to training data
 
         Args:
             persist=True -- save to disk or not, bool
@@ -146,42 +144,3 @@ class SoftmaxRegression(object):
         w = np.random.randn(self.n, self.k) * bound
         b = np.zeros((1, 1))
         return w, b
-
-
-def main():
-    hyperparams = {
-        "training_iters": 2500,
-        "learning_rate": 0.001,
-        "init_param_bound": 0.01
-    }
-    ######################
-    ## Testing on MNIST ##
-    ######################
-    # train = './data/train.csv'
-    # test = './data/test.csv'
-    # tic = t.time()
-    # (X_train, Y_train), X_test = preprocess(train, test)
-    # toc = t.time() - tic
-    # print("Preprocessing Time: {}\n".format(toc))
-    # print("\tTrain Set:\nfeatures: {} | labels: {}".format(X_train.shape, Y_train.shape))
-    # print("\tTest Set:\nfeatures: {}\n".format(X_test.shape))
-
-    #####################
-    ## Testing on Iris ##
-    #####################
-    tic = t.time()
-    url = 'https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data'
-    col_names = ['sepal-length', 'sepal-width', 'petal-length', 'petal-width', 'class']
-    toc = t.time() - tic
-    iris = read_csv(url, names=col_names)
-    X = np.array(iris.ix[:, :-1])
-    Y = np.array(get_dummies(iris.ix[:, -1]))
-    print(X.shape)
-    print(Y.shape)
-    print("Download Time: {}\n".format(toc))
-
-    lr = SoftmaxRegression(X.T, Y.T, hyperparams)
-
-
-if __name__ == '__main__':
-    main()
