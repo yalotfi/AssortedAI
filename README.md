@@ -1,10 +1,10 @@
 ## AssortedAI
 
-This project is primarily a way to organize individual ML algorithms that I've implemented in disparate repositories. AssortedAI will become a package that has core functionality that makes machine learning simple and extensible. At a bare minimum, it will cover basic supervised learning algorithms, at least one clustering technique, variations of stochastic gradient descent, and some preprocessing utilities.
+This project is primarily a way to organize individual ML algorithms that I've implemented in disparate repositories. AssortedAI will become a package that has core functionality that makes machine learning simple and declarative. At a bare minimum, it will cover basic supervised learning algorithms, at least one clustering technique, variations of stochastic gradient descent, and some preprocessing utilities.
 
-Beyond the basic prerequisites, I would like the implement visualization tools and dimensionality reduction techniques like PCA and t-SNE. In terms of graphing model performance, many libaries are lacking in this regard. This feature could become an advantage. In terms of optimization, I haven't used second order, Netown methods so this could be another stretch goal for the project.
+Beyond the basic prerequisites, I would like the implement visualization tools and dimensionality reduction techniques like PCA and t-SNE. In terms of optimization, I haven't used second order, Netown methods so this could be another stretch goal for the project.
 
-Finally, there will be several fleshed out examples with concrete machine learning tasks from MNIST to iris-flower prediction, and housing price predictions. It will provide a solid context on using the APIs and I aim for it to feel akin to a simplified sklearn work-flow.
+Finally, there will be several detailed examples of machine learning tasks from digit recognition to flower-type prediction, and housing price predictions. It will provide a solid context on using the APIs. I aim for it to feel akin to a simplified sklearn work-flow.
 
 ### Motivation:
 
@@ -20,6 +20,8 @@ Finally, there will be several fleshed out examples with concrete machine learni
 4. Deep (L-layer) Feedforward Neural Networks
 5. K-Nearest Neighbors
 6. K-Means Clustering
+
+*NOTE: Just basic goals for now that touch on most ML fundamentals*
 
 ### Utilities/Other:
 
