@@ -64,7 +64,6 @@ class LogisticRegression(object):
     """
     def __init__(self, hyperparams):
         self.hyperparams = hyperparams
-        self.w, self.b = self.init_params
         self.cost_cache = []
         self.trained_params = {}
         self.trained_grads = {}
@@ -83,10 +82,13 @@ class LogisticRegression(object):
         # Define helper variables: iterations, learning rate
         epochs = self.hyperparams['training_iters']
         alpha = self.hyperparams['learning_rate']
+
+        w, b = self.init_params
+
         # Training with gradient descent
         for i in range(epochs):
             # Forward and backward pass gives cost and gradients for each training iter
-            y_hat =  hypothesis(self.w, self.b, X_train)
+            y_hat =  hypothesis(w, b, X_train)
             cost = cross_entropy(y_hat, y_train)
             grads = compute_grads(y_hat, y_train, X_train)
 
@@ -96,16 +98,17 @@ class LogisticRegression(object):
             assert(cost.shape == ())
 
             # Update rule for tweaking parameters
-            self.w = self.w - alpha * grads['dw']
-            self.b = self.b - alpha * grads['db']
+            w = w - alpha * grads['dw']
+            b = b - alpha * grads['db']
+
             # Record model error every 100 iterations
             if print_cost and i % 100 == 0:
                 self.cost_cache.append(cost)
                 print('Error after {} epochs: {}'.format(i + 1, cost))
         # Store optimized parameters
         self.trained_params = {
-            'w': self.w,
-            'b': self.b
+            'w': w,
+            'b': b
         }
         # Store optimized gradients
         self.trained_grads = {
