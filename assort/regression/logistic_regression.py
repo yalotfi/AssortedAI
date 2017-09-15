@@ -1,7 +1,43 @@
 import numpy as np
 
 from utils.activations import sigmoid
-from utils.cost_functions import log_loss
+from utils.cost_functions import cross_entropy
+
+
+def hypothesis(w, b, X):
+    """Make prediction
+
+    Args:
+        w -- weight vector with shape (1, n)
+        b -- bias scalar with shape (1, 1)
+        X -- feature matrix with shape (
+
+    Returns:
+        y_hat -- linear predictions passed through sigmoid
+    """
+    return sigmoid(np.dot(w.T, X) + b)
+
+
+def compute_grads(y_hat, y, X):
+    """Compute gradient of the cost function
+
+    Args:
+        y_hat -- vector of predicted labels with shape (n, 1)
+        y -- vector of actual labels with shape (n, 1)
+        X -- feature matrix with shape (n_features, m_examples)
+
+    Returns:
+        grads -- python dictionary of weight and bias gradients
+    """
+    m = X.shape[1]
+    dZ = y_hat - y
+    dw = (1 / m) * np.dot(X, dZ.T)
+    db = (1 / m) * np.sum(dZ)
+    grads = {
+        'dw': dw,
+        'db': db
+    }
+    return grads
 
 
 class LogisticRegression(object):
@@ -12,12 +48,8 @@ class LogisticRegression(object):
                 "training_iters": int, ideally multiple of 100
                 "learning_rate": float32, scales parameter update rule
                 "init_param_bound": float32, range in which to init weights
-        n -- feature size, scalar int
-        m -- training examples, scalar int
-        X -- feature matrix (n, m), np.ndarray
-        y -- label vector (1, m), np.ndarray
-        w -- weight vector (n, 1), np.ndarray
-        b -- bias initialized to zero, scalar type float
+        w -- weight vector (n, 1) initialized within random range
+        b -- bias initialized to zero, scalar
         cost_cache -- python list storing historical training error
         trained_params -- dictionary storing optimized params
         trained_grads -- dictionary storing optimized gradients
@@ -30,42 +62,39 @@ class LogisticRegression(object):
         plot_cost -- plot training error over number of training iterations
         #############
     """
-    def __init__(self, X, Y, hyperparams):
+    def __init__(self, hyperparams):
         self.hyperparams = hyperparams
-        self.n = X.shape[0]
-        self.m = X.shape[1]
-        self.X = X
-        self.Y = Y
         self.w, self.b = self.init_params
         self.cost_cache = []
         self.trained_params = {}
         self.trained_grads = {}
 
-    def optimize(self, persist=True, print_cost=True):
-        """Fit logistic regression to training data
+    def run_sgd(self, X_train, y_train, print_cost=True):
+        """Fit model to training data with stochastic gradient descent
 
         Args:
-            persist=True -- save to disk or not, bool
+            X_train -- train set: feature matrix (n, m_train)
+            y_train -- train set: label vector (1, m_train)
             print=True -- print cost to console log
 
         Return:
             self
-
-        Description:
-            Requires the training iterations for SGD and learning rate which
-            are both used to update and train the model parameters
-
-            SoftmaxClassifier.optimize( ... ) will update the class object's trained
-            gradients and parameter attributes as dictionaries so that they can
-            be accessed later.
         """
         # Define helper variables: iterations, learning rate
         epochs = self.hyperparams['training_iters']
         alpha = self.hyperparams['learning_rate']
         # Training with gradient descent
         for i in range(epochs):
-            # Forward and backward pass gives cost and gradients for i-th epoch
-            grads, cost = self._propagate()
+            # Forward and backward pass gives cost and gradients for each training iter
+            y_hat =  hypothesis(self.w, self.b, X_train)
+            cost = cross_entropy(y_hat, y_train)
+            grads = compute_grads(y_hat, y_train, X_train)
+
+            # Assertions
+            assert(grads['dw'].shape == self.w.shape)
+            assert(grads['db'].dtype == float)
+            assert(cost.shape == ())
+
             # Update rule for tweaking parameters
             self.w = self.w - alpha * grads['dw']
             self.b = self.b - alpha * grads['db']
@@ -85,52 +114,41 @@ class LogisticRegression(object):
         }
         return self
 
-    def predict(self, X, binary_threshold=0.5):
+    def predict(self, X_test, y_test, binary_threshold=0.5):
         """Predict binary labels on a given data set
 
         Arguments:
-            X -- feature matrix with shape (feature_size, examples), numpy ndarray
-            binary -- binary or multiclass classification, bool
+            X_test -- test set: feature matrix (n_features, m_test)
+            y_test -- test set: label vector (1, m_test)
             binary_threshold -- probability threshold to pick binary class
         """
-        preds = np.zeros((1, self.m))
-        w = self.trained_params['w']
-        b = self.trained_params['b']
-        y_hat = sigmoid(np.dot(w.T, X) + b)
+        # Define helper variables
+        m = X_test.shape[1]  # training examples to sum over
+        preds = np.zeros((1, m))  # init empty prediction array
+        w = self.trained_params['w']  # pull trained params
+        b = self.trained_params['b']  # pull trained gradients
+        y_hat = sigmoid(np.dot(w.T, X_test) + b)  # make predictions
+
         # Take probability vector, y_hat: output predicted classes
         for i in range(y_hat.shape[0]):
             if y_hat[0, i] <= binary_threshold:
                 preds[0, i] = 0
             elif y_hat[0, i] > binary_threshold:
                 preds[0, i] = 1
-        return preds
 
-    def _propagate(self):
-        """Compute prediction error and gradients"""
-        # Step 1: Forward Propagation
-        Y_hat = sigmoid(np.dot(self.w.T, self.X) + self.b)
-        cost = np.squeeze(log_loss(Y_hat, self.Y))
+        # Assess prediction
+        score = self.accuracy(y_test, preds)
 
-        # Step 2: Backward Propagation
-        dZ = Y_hat - self.Y
-        dw = (1 / self.m) * np.dot(self.X, dZ.T)
-        db = (1 / self.m) * np.sum(dZ)
+        return preds, score
 
-        # Save gradients in a dictionary
-        grads = {
-            'dw': dw,
-            'db': db
-        }
-        # Assert that dw and w have same dims, db is float, and cost squeezed
-        assert(dw.shape == self.w.shape)
-        assert(db.dtype == float)
-        assert(cost.shape == ())
-        # Return gradients and cost
-        return grads, cost
+    def accuracy(self, y_test, preds):
+        """Assess accuracy of predictions from trained model"""
+        pass
 
     @property
     def init_params(self):
         bound = self.hyperparams['init_param_bound']
-        w = np.random.randn(self.n, 1) * bound
+        n = self.X_train.shape[0]
+        w = np.random.randn(n, 1) * bound
         b = np.zeros((1, 1))
         return w, b
