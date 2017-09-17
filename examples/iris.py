@@ -4,7 +4,7 @@ import time as t
 from pandas import get_dummies
 from pandas.io.parsers import read_csv
 
-from assort.regression.softmax_regression import SoftmaxRegression
+from assort.regression.softmax import SoftmaxRegression
 
 
 def main():
