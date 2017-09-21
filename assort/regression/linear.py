@@ -1,6 +1,6 @@
 import numpy as np
 
-from assort.utils.cost_functions import mse
+from assort.cost_functions import mse
 
 # Implement Linear Regression trained with SGD
 # h(x) = theta.T * X
@@ -8,16 +8,12 @@ from assort.utils.cost_functions import mse
 # grad_J(theta) = sum()
 
 
-def hypothesis(X, theta):
-    return np.dot(X, theta)
-
-
 def compute_cost(X, y, theta):
-    m = y.size
+    # m = y.size
     y_hat = hypothesis(X, theta)
-    cost1 = (1 / (2 * m)) * np.sum(np.square(y_hat - y))
-    cost2 = mse(y_hat, y)
-    return (cost1, cost2)
+    cost = mse(y_hat, y)
+    grad = mse(y_hat, y, derivative=True, X_train=X)
+    return (cost, grad)
 
 
 def compute_grads(theta, X, y):
@@ -42,17 +38,39 @@ class LinearRegression(object):
         cost_cache -- python list of historical training error
 
     Methods:
+        train -- takes training examples and labels
 
     """
 
-    def __init__(self, X_trian, y_train, hyperparamters):
-        self.X = X_train
-        self.y = y_train
-        self.theta = self.init_params()
-        self.cost_cache = []
+    def __init__(self, hyperparamters):
+        self.alpha = hyperparamters["learning_rate"]
+        self.epochs = hyperparamters["training_iters"]
+        self.cost_cache = np.zeros(self.epochs)
         self.trained_params = {}
         self.trained_grads = {}
 
-    @property
-    def init_params(self):
-        return np.zeros((self.X.shape[0], 1))
+    def hypothesis(self, X, theta):
+        return np.dot(X, theta)
+
+    def train(self, X_train, y_train):
+        # m = y_train.size
+        theta = np.zeros(())
+        for i in range(self.epochs):
+            y_hat = self.hypothesis(X_train, theta)
+            cost = mse(y_hat, y_train)
+            grad = mse(y_hat, y_train, derivative=True, X=X_train)
+            # dw = (1 / m) * np.dot(X_train.T, (y_hat - y_train))
+            # db = (1 / m) * (y_hat - y_train)
+            # assert(dw.shape == self.w.shape)
+            # assert(db.dtype == float)
+            assert(cost.shape == ())
+            theta -= self.alpha * grad
+        # self.trained_grads = {
+        #     "dw": dw,
+        #     "db": db
+        # }
+        # self.trained_params = {
+        #     "w":
+
+        #     "b"
+        # }
