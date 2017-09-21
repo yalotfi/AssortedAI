@@ -1,8 +1,15 @@
 import numpy as np
 
 
-def normalize(X):
+def rescale(X):
+    """Rescale data between [0, 1]"""
     return (X - np.min(X)) / (np.max(X) - np.min(X))
+
+
+def standardize(X):
+    """Standardize features to have zero mean and unit-variance"""
+    # X - X_bar / variance
+    pass
 
 
 def one_hot_encode(labels, n_classes):
