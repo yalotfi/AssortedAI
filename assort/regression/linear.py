@@ -8,15 +8,6 @@ from assort.cost_functions import mse
 # grad_J(theta) = sum()
 
 
-def compute_cost(X, y, theta):
-    # m = y.size
-    X = np.c_[np.ones((X.shape[0], 1)), X]
-    y_hat = np.dot(X, theta)
-    cost = mse(y_hat, y)
-    grad = mse(y_hat, y, derivative=True, X=X)
-    return (cost, grad)
-
-
 class LinearRegression(object):
     """OLS regression trained with Stochastic Gradient Descent
 
@@ -34,7 +25,7 @@ class LinearRegression(object):
 
     def __init__(self, hyperparamters):
         self.alpha = hyperparamters["learning_rate"]
-        self.epochs = hyperparamters["training_iters"]
+        self.epochs = hyperparamters["epochs"]
         self.cost_cache = []
         self.trained_params = {}
 
@@ -51,18 +42,33 @@ class LinearRegression(object):
         Return:
             self
         """
-        n = X_train.shape[1]
+        # Initial housekeeping before running SGD
+        m, n = X_train.shape[0], X_train.shape[1]
         theta = np.zeros((n + 1, 1))
-        X = np.c_[np.ones((theta.shape)), X_train]
+        X = np.c_[np.ones((m, 1)), X_train]
+        print("Initialized params to zero...\n")
+
+        # Start running SGD
         for i in range(self.epochs):
             # 1) Make prediction
             y_hat = self.hypothesis(X, theta)
+
             # 2) Compute error of prediction and store it in cache
             cost = mse(y_hat, y_train)
             self.cost_cache.append(cost)
+            if i % 100 == 0:
+                print("Loss as iteration {}: {}".format(i, cost))
+
             # 3) Update parameters, theta, by learning rate and gradient
             grads = mse(y_hat, y_train, derivative=True, X=X)
-            theta -= self.alpha * grads
+            theta = theta - self.alpha * grads
+
         # Save optimized parameters
-        self.trained_params = {"thetas": theta}
+        self.trained_params = {"theta": theta}
         return self
+
+    def predict(self, X):
+        """Make a prediction with the trained model"""
+        X_ = np.c_[np.ones((X.shape[0], 1)), X]
+        theta = self.trained_params["theta"]
+        return np.dot(X_, theta)
