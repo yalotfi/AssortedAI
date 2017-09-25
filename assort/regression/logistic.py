@@ -1,98 +1,64 @@
 import numpy as np
 
-from utils.activations import sigmoid
-from utils.cost_functions import cross_entropy
-
-
-def hypothesis(w, b, X):
-    """Make prediction
-
-    Args:
-        w -- weight vector with shape (1, n)
-        b -- bias scalar with shape (1, 1)
-        X -- feature matrix with shape (
-
-    Returns:
-        y_hat -- linear predictions passed through sigmoid
-    """
-    return sigmoid(np.dot(w.T, X) + b)
-
-
-def compute_grads(y_hat, y, X):
-    """Compute gradient of the cost function
-
-    Args:
-        y_hat -- vector of predicted labels with shape (n, 1)
-        y -- vector of actual labels with shape (n, 1)
-        X -- feature matrix with shape (n_features, m_examples)
-
-    Returns:
-        grads -- python dictionary of weight and bias gradients
-    """
-    m = X.shape[1]
-    dZ = y_hat - y
-    dw = (1 / m) * np.dot(X, dZ.T)
-    db = (1 / m) * np.sum(dZ)
-    grads = {
-        'dw': dw,
-        'db': db
-    }
-    return grads
+from assort.activations import sigmoid
+from assort.cost_functions import cross_entropy
 
 
 class LogisticRegression(object):
-    """Logistic regression for binary classification
+    """Logistic regression trained on batch Gradient Descent
 
     Attributes:
-        hyperparams - python dictionary defining model hyperparameters
+        hyperparams -- python dictionary defining model hyperparameters
                 "training_iters": int, ideally multiple of 100
                 "learning_rate": float32, scales parameter update rule
                 "init_param_bound": float32, range in which to init weights
-        w -- weight vector (n, 1) initialized within random range
-        b -- bias initialized to zero, scalar
         cost_cache -- python list storing historical training error
         trained_params -- dictionary storing optimized params
         trained_grads -- dictionary storing optimized gradients
 
     Methods:
         ### ~WIP~ ###
+        gradient_descent -- Train model with gradient descent
         predict -- make binary predictions with trained model
         ### TO-DO ###
         accuracy -- provide accuracy metrics for the model
         plot_cost -- plot training error over number of training iterations
         #############
     """
-    def __init__(self, hyperparams):
+    def __init__(self, hyperparamters):
         self.hyperparams = hyperparams
         self.cost_cache = []
         self.trained_params = {}
         self.trained_grads = {}
 
-    def run_sgd(self, X_train, y_train, print_cost=True):
+    def gradient_descent(self, X_train, y_train, print_cost_freq=10):
         """Fit model to training data with stochastic gradient descent
 
-        Args:
-            X_train -- train set: feature matrix (n, m_train)
-            y_train -- train set: label vector (1, m_train)
-            print=True -- print cost to console log
+        Arguments:
+            X_train -- train set, feature matrix (m, n)
+            y_train -- train set, label vector (m, 1)
+            print_cost_freq -- how often to print cost
 
         Return:
             self
         """
-        # Define helper variables: iterations, learning rate
-        epochs = self.hyperparams['training_iters']
+        # Define helper variables: iters, learning rate, dim, params
         alpha = self.hyperparams['learning_rate']
-
+        epochs = self.hyperparams['training_iters']
+        m, n = X_train.shape[0], X_train.shape[1]
         w, b = self.init_params
 
         # Training with gradient descent
+        print("Training model...")
         for i in range(epochs):
-            # Forward and backward pass gives cost and gradients for each training iter
-            y_hat =  hypothesis(w, b, X_train)
+            # Forward pass computes prediction and its loss
+            y_hat =  self._hypothesis(X_train, w, b)
             cost = cross_entropy(y_hat, y_train)
-            grads = compute_grads(y_hat, y_train, X_train)
 
-            # Assertions
+            # Backward pass computes gradient of loss w respect to each param
+            grads = cross_entropy(y_hat, y_train, derivative=True, X_train)
+
+            # Assertions gradient and paramter dims
             assert(grads['dw'].shape == self.w.shape)
             assert(grads['db'].dtype == float)
             assert(cost.shape == ())
@@ -105,6 +71,7 @@ class LogisticRegression(object):
             if print_cost and i % 100 == 0:
                 self.cost_cache.append(cost)
                 print('Error after {} epochs: {}'.format(i + 1, cost))
+
         # Store optimized parameters
         self.trained_params = {
             'w': w,
@@ -115,6 +82,8 @@ class LogisticRegression(object):
             'dw': grads['dw'],
             'db': grads['db']
         }
+
+        print("Model is trained, optimized results stored...\n")
         return self
 
     def predict(self, X_test, y_test, binary_threshold=0.5):
@@ -155,3 +124,6 @@ class LogisticRegression(object):
         w = np.random.randn(n, 1) * bound
         b = np.zeros((1, 1))
         return w, b
+
+    def _hypothesis(self, X, w, b):
+        return np.dot(X.T, w) + b
