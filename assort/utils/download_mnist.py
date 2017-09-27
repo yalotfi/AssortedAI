@@ -1,57 +1,82 @@
+import sys
 import os
 import gzip
 import struct
 import numpy as np
 
-from urllib import request
+sys.path.insert(0, os.path.join(os.getcwd()))
+from assort.utils.download_util import download
 
 
-def download_mnist(url, fname, directory):
-    """Download the file from the given url, filename, and directory."""
-    if not os.path.exists(directory):
-        print("Creating directory %s" % directory)
-        os.mkdir(directory)
-    else:
-        print("Directory exists: %s" % directory)
-    filepath = os.path.join(directory, fname)
-    if not os.path.exists(filepath):
-        print("Downloading %s to %s" % (fname, filepath))
-        local_fname, _ = request.urlretrieve(url + fname, filepath)
-        statinfo = os.stat(filepath)
-        print("Successfully downloaded %s bytes %s" % (fname, statinfo.st_size))
-    else:
-        print("File %s exists in %s" % (fname, filepath))
-    return filepath
+class MNISTReader(object):
+    """docstring for MNISTReader."""
+    def __init__(self, directory, download_flag=False):
+        super(MNISTReader, self).__init__()
+        self.directory = directory
+        self.download_flag = download_flag
+        self.fnames = {"X_train": 'train-images-idx3-ubyte.gz',
+                       "y_train": 'train-labels-idx1-ubyte.gz',
+                       "X_test": 't10k-images-idx3-ubyte.gz',
+                       "y_test": 't10k-labels-idx1-ubyte.gz'}
+        self.train_set = self._load_train_set
+        self.test_set = self._load_test_set
 
+    def save_mnist(self):
+        """Persist MNIST NumPy Arrays to disk"""
+        pass
 
-def read_mnist(fimg, flab):
-    """Read raw MNIST data files and load them into NumPy arrays."""
-    with gzip.open(flab) as f:
-        magic, num = struct.unpack(">II", f.read(8))
-        label = np.fromstring(f.read(), dtype=np.int8)
+    def _download_mnist(self, directory):
+        """Download raw MNIST files from Yann LeCunn's public repo and dumps
+           the gzip files in the given directory.
+        """
+        url = 'http://yann.lecun.com/exdb/mnist/'
+        for fname in self.fnames:
+            filepath = download(url, fname, directory)
 
-    m = label.shape[0]
-    with gzip.open(fimg, 'rb') as f:
-        magic, num, rows, cols = struct.unpack(">IIII", f.read(16))
-        image = np.fromstring(f.read(), dtype=np.uint8).reshape(m, rows, cols)
-    return (image, label)
+    def _read_labs(self, flab):
+        """Unpack label file bytes into NumPy Array"""
+        with gzip.open(flab) as f:
+            magic, m = struct.unpack(">II", f.read(8))
+            labels = np.fromstring(f.read(), dtype=np.int8)
+        assert(m == labels.shape[0])
+        return labels, m
+
+    def _read_imgs(self, fimg):
+        """Unpack image file bytes into NumPy Array"""
+        with gzip.open(fimg, 'rb') as f:
+            magic, num, rows, cols = struct.unpack(">IIII", f.read(16))
+            images = np.fromstring(f.read(), dtype=np.uint8)
+        assert(rows == cols)
+        img_dims = {"row": rows, "col": cols}
+        return images, img_dims
+
+    def _read_mnist(self, fimg, flab):
+        """Choose to download raw MNIST and return feature/label sets."""
+        img_path = os.path.join(self.directory, fimg)
+        lab_path = os.path.join(self.directory, flab)
+        if self.download_flag:
+            self._download_mnist(self.directory)
+        labels, m = self._read_labs(lab_path)
+        images, dim = self._read_imgs(img_path)
+        return (images.reshape(m, dim["row"], dim["col"]), labels.reshape(m, 1))
+
+    @property
+    def _load_train_set(self):
+        return self._read_mnist(self.fnames["X_train"], self.fnames["y_train"])
+
+    @property
+    def _load_test_set(self):
+        return self._read_mnist(self.fnames["X_test"], self.fnames["y_test"])
 
 
 def main():
-    url='http://yann.lecun.com/exdb/mnist/'
-    fnames = ['train-images-idx3-ubyte.gz',
-              'train-labels-idx1-ubyte.gz',
-              't10k-images-idx3-ubyte.gz',
-              't10k-labels-idx1-ubyte.gz']
     directory = os.path.join('assort', 'datasets', 'mnist')
-    # Testing
-    for fname in fnames:
-        filepath = download_mnist(url, fname, directory)
+    reader = MNISTReader(directory)
+    (X_train, y_train) = reader.train_set
+    (X_test, y_test) = reader.test_set
 
-    X_train, y_train = read_mnist(fnames[0], fnames[1])
     print(X_train.shape)
     print(y_train.shape)
-    X_test, y_test = read_mnist(fnames[2], fnames[3])
     print(X_test.shape)
     print(y_test.shape)
 
