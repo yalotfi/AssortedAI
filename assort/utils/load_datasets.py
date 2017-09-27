@@ -6,7 +6,7 @@ import numpy as np
 
 from urllib import request
 
-from assort.utils.download_mnist import MNISTReader
+from assort.utils.mnist_util import MNISTReader
 
 
 def get_profit():
