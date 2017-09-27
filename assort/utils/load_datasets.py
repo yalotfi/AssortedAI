@@ -6,6 +6,8 @@ import numpy as np
 
 from urllib import request
 
+from assort.utils.download_mnist import MNISTReader
+
 
 def get_profit():
     # Load data
@@ -40,35 +42,16 @@ def get_housing():
     return (X_train, y_train, X_test)
 
 
-def get_mnist(binary=False):
-    # Download file from Yann LeCunn's MNIST repo
-    url = 'http://yann.lecun.com/exdb/mnist/'
-    train_img =  'train-images-idx3-ubyte.gz'
-    train_lab = 'train-labels-idx1-ubyte.gz'
-    test_img = 't10k-images-idx3-ubyte.gz'
-    test_lab = 't10k-labels-idx1-ubyte.gz'
+def get_mnist(directory, binary=False, flatten=True):
+    directory = os.path.join('assort', 'datasets', 'mnist')
+    reader = MNISTReader(directory)
+    (X_train, y_train) = reader.train_set
+    (X_test, y_test) = reader.test_set
 
-    # Download and unpack training images into X_train feature matrix
-    with gzip.open(request.urlretrieve(url + train_img, train_img)) as trainimg:
-        magic, num = struct.unpack('>II', trainimg.read(8))
-        X_train = np.fromstring(flbl.read(), dtype=np.float32)
-
-    # # Download and unpack training images into X_test feature matrix
-    # with gzip.open(urllib.urlretrieve(url + test_img, test_img)) as testimg:
-    #     magic, num = struct.unpack('>II', flbl.read(8))
-    #     X_test = np.fromstring(flbl.read(), dtype=np.float32)
-    #
-    # # Download and unpack training labels into y_train label vector
-    # with gzip.open(urllib.urlretrieve(url + test_img, test_img)) as fimg:
-    #     magic, num = struct.unpack('>II', flbl.read(8))
-    #     X_test = np.fromstring(flbl.read(), dtype=np.float32)
-    #
-    # # Download and unpack testing labels into y_test label vector
-    # with gzip.open(urllib.urlretrieve(url + test_img, test_img)) as flbl:
-    #     magic, num = struct.unpack('>II', flbl.read(8))
-    #     X_test = np.fromstring(flbl.read(), dtype=np.float32)
-
-    return X_train
+    print(X_train.shape)
+    print(y_train.shape)
+    print(X_test.shape)
+    print(y_test.shape)
 
 
 if __name__ == '__main__':
