@@ -12,6 +12,7 @@ class MNISTReader(object):
     def __init__(self, directory, download_flag=False):
         super(MNISTReader, self).__init__()
         self.directory = directory
+        self.download_flag = download_flag
         self.fnames = {
             "train_set": {
                 "features": 'train-images-idx3-ubyte.gz',
@@ -53,7 +54,8 @@ class MNISTReader(object):
         """Try to download raw MNIST and return (feature, label) set."""
         img_path = os.path.join(self.directory, which_set["features"])
         lab_path = os.path.join(self.directory, which_set["labels"])
-        self._download_mnist(which_set)
+        if self.download_flag:
+            self._download_mnist(which_set)
         labels, m = self._read_labs(lab_path)
         images, r, c = self._read_imgs(img_path)
         return (images.reshape(m, r, c), labels.reshape(m, 1))
