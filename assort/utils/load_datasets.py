@@ -1,9 +1,6 @@
 import os
-import sys
-import time as t
 import numpy as np
 
-sys.path.insert(0, os.path.join(os.getcwd()))
 from assort.utils.mnist_util import MNISTReader
 
 
@@ -40,34 +37,37 @@ def get_housing():
     return (X_train, y_train, X_test)
 
 
-def get_mnist(download=True, serialize=False, binary=False, flatten=False):
+def get_mnist(download=True, serialize=False,
+              binary=False, bin_digits=[0, 1], flatten=False):
     """Retrieve MNIST datasets and return tuples of train/test sets"""
 
-    # Load MNIST data
+    # Load MNIST data - supply download and flatten flags to MNIST Reader
     directory = os.path.join('assort', 'datasets', 'mnist')
-    reader = MNISTReader(directory, download)
+    reader = MNISTReader(directory, download, flatten)
+
+    # Pull the train and test sets stored as attributes of the reader
     (X_train, y_train) = reader.train_set
     (X_test, y_test) = reader.test_set
 
-    m_train, m_test = X_train.shape[0], X_test[0]
-    px_row, px_col = X_train.shape[1], X_train.shape[2]
-
+    # Flag - serialize arrays to default directory: assort\datasets\mnist\
     if serialize:
         fpath = os.path.join(directory, 'mnist.npz')
         np.savez(fpath,
                  X_train=X_train, y_train=y_train,
                  X_test=X_test, y_test=y_test)
+        print("Saved MNIST arrays to disk here: {}\n".format(fpath))
 
+    # Flag - subset for binary classification
     if binary:
-        train_zero_idxs = np.where(y_train == 0)[0]
-        print(train_zero_idxs.shape)
-        print(X_train[train_zero_idxs, :, :].shape)
-        # print(np.take(X_train, train_zero_idxs).shape)
-        # (train_ones_idxs, train_ones_labs) = np.where(y_train == 1)
-        # (test_zero_idxs, test_zero_labs) = np.where(y_test == 0)
-        # (test_ones_idxs, test_ones_labs) = np.where(y_test == 1)
-        # X_train_bin = np.take(X_train, )
-
-
-if __name__ == '__main__':
-    get_mnist(download=False, serialize=False, binary=True, flatten=False)
+        # Subset by logical indexing
+        a, b = bin_digits[0], bin_digits[1]
+        train_digits = np.where(np.logical_or(y_train == a, y_train == b))
+        test_digits = np.where(np.logical_or(y_test == a, y_test == b))
+        X_train_bin = X_train[train_digits[0]]  # (m_bin_train, 28, 28)
+        y_train_bin = y_train[train_digits[0]]  # (m_bin_train, 1)
+        X_test_bin = X_test[test_digits[0]]  # (m_bin_test, 28, 28)
+        y_test_bin = y_test[test_digits[0]]  # (m_bin_test, 1)
+        return (X_train_bin, y_train_bin), (X_test_bin, y_test_bin)
+    # Otherwise return full dataset of all 10-classes
+    else:
+        return (X_train, y_train), (X_test, y_test)
