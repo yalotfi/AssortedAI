@@ -26,12 +26,16 @@ class LogisticRegression(object):
         #############
     """
     def __init__(self, hyperparamters):
-        self.hyperparams = hyperparams
+        self.hyperparamters = hyperparamters
         self.cost_cache = []
         self.trained_params = {}
         self.trained_grads = {}
 
-    def gradient_descent(self, X_train, y_train, print_cost_freq=10):
+    def _hypothesis(self, X, w, b):
+        Z = np.dot(X, w) + b
+        return sigmoid(Z)
+
+    def gradient_descent(self, X_train, y_train, print_cost_freq=100):
         """Fit model to training data with stochastic gradient descent
 
         Arguments:
@@ -43,10 +47,10 @@ class LogisticRegression(object):
             self
         """
         # Define helper variables: iters, learning rate, dim, params
-        alpha = self.hyperparams['learning_rate']
-        epochs = self.hyperparams['training_iters']
+        alpha = self.hyperparamters['learning_rate']
+        epochs = self.hyperparamters['training_iters']
         m, n = X_train.shape[0], X_train.shape[1]
-        w, b = self.init_params
+        w, b = self.init_params(n)
 
         # Training with gradient descent
         print("Training model...")
@@ -56,10 +60,10 @@ class LogisticRegression(object):
             cost = cross_entropy(y_hat, y_train)
 
             # Backward pass computes gradient of loss w respect to each param
-            grads = cross_entropy(y_hat, y_train, derivative=True, X_train)
+            grads = cross_entropy(y_hat, y_train, derivative=True, X=X_train)
 
             # Assertions gradient and paramter dims
-            assert(grads['dw'].shape == self.w.shape)
+            assert(grads['dw'].shape == w.shape)
             assert(grads['db'].dtype == float)
             assert(cost.shape == ())
 
@@ -68,9 +72,9 @@ class LogisticRegression(object):
             b = b - alpha * grads['db']
 
             # Record model error every 100 iterations
-            if print_cost and i % 100 == 0:
+            if i % print_cost_freq == 0:
                 self.cost_cache.append(cost)
-                print('Error after {} epochs: {}'.format(i + 1, cost))
+                print('Error after {} epochs: {}'.format(i, cost))
 
         # Store optimized parameters
         self.trained_params = {
@@ -117,13 +121,8 @@ class LogisticRegression(object):
         """Assess accuracy of predictions from trained model"""
         pass
 
-    @property
-    def init_params(self):
-        bound = self.hyperparams['init_param_bound']
-        n = self.X_train.shape[0]
+    def init_params(self, n):
+        bound = self.hyperparamters['init_param_bound']
         w = np.random.randn(n, 1) * bound
         b = np.zeros((1, 1))
         return w, b
-
-    def _hypothesis(self, X, w, b):
-        return np.dot(X.T, w) + b
