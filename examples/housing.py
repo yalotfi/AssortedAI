@@ -3,7 +3,7 @@ import os
 
 # Add AssortedAI to system path for development
 sys.path.insert(0, os.path.join(os.getcwd()))
-from assort.utils import norm
+from assort.preprocessing import norm
 from assort.regression.linear import LinearRegression
 from assort.utils.load_datasets import get_housing
 
