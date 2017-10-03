@@ -14,8 +14,8 @@ Finally, there will be several detailed examples of machine learning tasks from 
 
 ### Models:
 
-1. Linear Regression
-2. Softmax Regression (generalized logistic regression)
+1. ~~Linear Regression~~
+2. Softmax Regression (generalized ~~logistic regression~~)
 3. Shallow (2-L) Feedforward Neural Networks
 4. Deep (L-layer) Feedforward Neural Networks
 5. K-Nearest Neighbors
@@ -23,17 +23,31 @@ Finally, there will be several detailed examples of machine learning tasks from 
 
 *NOTE: Just basic goals for now that touch on most ML fundamentals*
 
-### Utilities/Other:
+### Other Components:
 
 1. Activation Functions
-    * Sigmoid
-    * Hyperbolic Tangent
-    * ReLU
-    * Leaky-ReLU
-2. Optimization Methods
+    * ~~Sigmoid~~
+    * ~~Softmax~~
+    * ~~Hyperbolic Tangent~~
+    * ~~ReLU~~
+    * ~~Leaky-ReLU~~
+
+2. Initializers
+	* ~~Zeros~~
+	* ~~Ones~~
+	* ~~Random Normal~~ / Random Uniform
+	* Xavier
+	* He
+3. Optimizers
     * Stochastic Gradient Descent
     * Adam
     * RMSProp
-3. Preprocessing Tools
+4. Regularizers
+	* L1/L2 Norm
+	* Dropout
+5. Preprocessing
     * One-hot encoding
-    * Normalization
+    * ~~Normalization~~
+    * Image transforms (TBD)
+
+A ~~strikethrough~~ indicates that feature has been successfully implemented.
