@@ -1,22 +1,21 @@
+import sys
+import os
+import pprint as pp
 import numpy as np
-import time as t
 
-from assort.regression.softmax import SoftmaxRegression
+sys.path.insert(0, os.path.join(os.getcwd()))
+from assort.utils import load_datasets
+# from assort.regression.softmax import SoftmaxRegression
 
 
 def main():
-    ###################
-    # Testing on Iris #
-    ###################
-    tic = t.time()
-    url = 'https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data'
-    toc = t.time() - tic
-    print("Download Time: {}\n".format(toc))
-    # iris = read_csv(url, names=col_names)
-    # X = np.array(iris.ix[:, :-1])
-    # Y = np.array(get_dummies(iris.ix[:, -1]))
-    # print(X.shape)
-    # print(Y.shape)
+    # (X_train, y_train), (X_test, y_test) = get_iris()
+    features, labels = load_datasets.get_iris()
+    print(np.array(features, dtype='f8'))
+    print(np.unique(np.array(labels)))
+    # pp.pprint(X)
+    # pp.pprint(y)
+
     # hyperparams = {
     #     "training_iters": 2500,
     #     "learning_rate": 0.001,

@@ -1,6 +1,8 @@
 import os
+import csv
 import numpy as np
 
+from assort.utils.download_util import download
 from assort.utils.mnist_util import MNISTReader
 
 
@@ -35,6 +37,21 @@ def get_housing():
     # Test, dummy data
     X_test = np.array([[2500, 3], [1000, 2], [1400, 3]])
     return (X_train, y_train, X_test)
+
+
+def get_iris():
+    url = 'https://archive.ics.uci.edu/ml/machine-learning-databases/iris/'
+    fname = "iris.data"
+    directory = os.path.join('assort', 'datasets', 'iris')
+    filepath = download(url, fname, directory)
+    features = []
+    labels = []
+    with open(filepath, 'r') as f:
+        csvreader = csv.reader(f, delimiter=',')
+        for row in csvreader:
+            features.append(row[:-1])
+            labels.append(row[-1:])
+    return features[:-1], labels[:-1]
 
 
 def get_mnist(download=True, serialize=False,
