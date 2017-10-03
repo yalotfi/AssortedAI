@@ -2,16 +2,16 @@ import numpy as np
 
 from assort.activations import sigmoid
 from assort.cost_functions import cross_entropy
+from assort import _INITIALIZER_CONFIG
 
 
 class LogisticRegression(object):
-    """Logistic regression trained on batch Gradient Descent
+    """Logistic regression trained on Stochastic Gradient Descent
 
     Attributes:
         hyperparams -- python dictionary defining model hyperparameters
                 "training_iters": int, ideally multiple of 100
                 "learning_rate": float32, scales parameter update rule
-                "init_param_bound": float32, range in which to init weights
         cost_cache -- python list storing historical training error
         trained_params -- dictionary storing optimized params
         trained_grads -- dictionary storing optimized gradients
@@ -25,8 +25,19 @@ class LogisticRegression(object):
         plot_cost -- plot training error over number of training iterations
         #############
     """
-    def __init__(self, hyperparamters):
+    def __init__(self,
+                 hyperparamters,
+                 weight_initializer='random_normal',
+                 bias_initializer='zeros'):
         self.hyperparamters = hyperparamters
+
+        # Set paramter initializer
+        if weight_initializer in _INITIALIZER_CONFIG:
+            self.weight_initializer = _INITIALIZER_CONFIG[weight_initializer]()
+        if bias_initializer in _INITIALIZER_CONFIG:
+            self.bias_initializer = _INITIALIZER_CONFIG[bias_initializer]()
+
+        # Assigned when model is training
         self.cost_cache = []
         self.trained_params = {}
         self.trained_grads = {}
@@ -50,7 +61,8 @@ class LogisticRegression(object):
         alpha = self.hyperparamters['learning_rate']
         epochs = self.hyperparamters['training_iters']
         m, n = X_train.shape[0], X_train.shape[1]
-        w, b = self.init_params(n)
+        w = self.weight_initializer((n, 1))
+        b = self.bias_initializer((1, 1))
 
         # Training with gradient descent
         print("Training model...")
@@ -120,9 +132,3 @@ class LogisticRegression(object):
     def accuracy(self, y_test, preds):
         """Assess accuracy of predictions from trained model"""
         pass
-
-    def init_params(self, n):
-        bound = self.hyperparamters['init_param_bound']
-        w = np.random.randn(n, 1) * bound
-        b = np.zeros((1, 1))
-        return w, b

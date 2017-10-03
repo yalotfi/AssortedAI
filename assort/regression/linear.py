@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from assort.cost_functions import mse
+from assort import _INITIALIZER_CONFIG
 
 
 class LinearRegression(object):
@@ -22,8 +23,14 @@ class LinearRegression(object):
         plot_error -- plot cost after each training iteration
     """
 
-    def __init__(self, hyperparamters):
+    def __init__(self, hyperparamters, bias_initializer='zeros'):
         self.hyperparamters = hyperparamters
+
+        # Set parameter initializer
+        if bias_initializer in _INITIALIZER_CONFIG:
+            self.bias_initializer = _INITIALIZER_CONFIG[bias_initializer]()
+
+        # Assigned when model is training
         self.cost_cache = np.zeros(self.hyperparamters["epochs"])
         self.trained_params = {}
 
@@ -45,7 +52,7 @@ class LinearRegression(object):
         alpha = self.hyperparamters["learning_rate"]
         epochs = self.hyperparamters["epochs"]
         m, n = X_train.shape[0], X_train.shape[1]
-        theta = np.zeros((n + 1, 1))
+        theta = self.bias_initializer((n + 1, 1))
         X = np.c_[np.ones((m, 1)), X_train]
         print("Initialized params to zero...\n")
 
