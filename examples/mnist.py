@@ -36,20 +36,26 @@ def main():
         X_test_norm.shape, y_test_k.shape))
 
     m = X_train_norm.shape[0]
-    w = np.random.randn(784, 1) * 0.01
-    b = np.zeros((1, 10))
+    # X.shape: (60000, 784)
+    w = np.random.randn(10, 784) * 0.01
+    b = np.zeros((10, 1))
 
     # Forward Prop
-    y_hat = sigmoid(np.dot(X_train_norm, w) + b)
-    cost = -(1 / m) * np.sum(y_train_k * np.log(y_hat) + (1 - y_train_k) * np.log(1 - y_hat))
+    y_hat = sigmoid(np.dot(w, X_train_norm.T) + b)
+    y = y_train_k.T
+    print(y_hat.shape)
+    print(y.shape)
+    cost = -(1 / m) * np.sum(y * np.log(y_hat), axis=0)
+    # cost = -(1 / m) * np.sum(y * np.log(y_hat) + (1 - y) * np.log(1 - y_hat))
+    # print(cost)
 
-    # Back Prop
-    dZ = y_hat - y_train_k
-    dw = (1 / m) * np.sum(np.dot(X_train_norm.T, dZ))
-    db = (1 / m) * np.sum(dZ)
-
-    print(cost)
-    print(dw, db)
+    # # Back Prop
+    # dZ = y_hat - y
+    # print(dZ.shape)
+    # dw = (1 / m) * np.sum(np.dot(dZ,X_train_norm))
+    # db = (1 / m) * np.sum(dZ)
+    #
+    # print(dw, db)
 
     # # Define model hyperparameters
     # hyperparameters = {
