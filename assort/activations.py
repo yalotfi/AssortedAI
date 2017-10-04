@@ -8,6 +8,7 @@ def sigmoid(z):
 
 def softmax(z, axis=1):
     """Softmax activation function (generalized sigmoid)"""
+    z -= np.max(z)
     return np.exp(z) / np.sum(np.exp(z), axis=axis, keepdims=True)
 
 
