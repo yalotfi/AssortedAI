@@ -30,8 +30,7 @@ def main():
     # Define model hyperparameters
     hyperparameters = {
         "learning_rate": 0.005,
-        "training_iters": 2000,
-        "init_param_bound": 0.01
+        "training_iters": 2000
     }
 
     # Train Logistic Regression model
