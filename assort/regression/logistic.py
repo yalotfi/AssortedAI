@@ -9,7 +9,7 @@ class LogisticRegression(object):
     """Logistic regression trained on Stochastic Gradient Descent
 
     Attributes:
-        hyperparams -- python dictionary defining model hyperparameters
+        hyperparameters -- python dictionary defining model hyperparameters
                 "training_iters": int, ideally multiple of 100
                 "learning_rate": float32, scales parameter update rule
         cost_cache -- python list storing historical training error
@@ -26,10 +26,10 @@ class LogisticRegression(object):
         #############
     """
     def __init__(self,
-                 hyperparamters,
+                 hyperparameters,
                  weight_initializer='random_normal',
                  bias_initializer='zeros'):
-        self.hyperparamters = hyperparamters
+        self.hyperparameters = hyperparameters
 
         # Set paramter initializer
         if weight_initializer in _INITIALIZER_CONFIG:
@@ -51,18 +51,19 @@ class LogisticRegression(object):
 
         Arguments:
             X_train -- train set, feature matrix (m, n)
-            y_train -- train set, label vector (m, 1)
+            y_train -- train set, label vector (m, k)
             print_cost_freq -- how often to print cost
 
         Return:
             self
         """
         # Define helper variables: iters, learning rate, dim, params
-        alpha = self.hyperparamters['learning_rate']
-        epochs = self.hyperparamters['training_iters']
+        alpha = self.hyperparameters['learning_rate']
+        epochs = self.hyperparameters['training_iters']
         m, n = X_train.shape[0], X_train.shape[1]
+        k_classes = y_train.shape[1]
         w = self.weight_initializer((n, 1))
-        b = self.bias_initializer((1, 1))
+        b = self.bias_initializer((1, k_classes))
 
         # Training with gradient descent
         print("Training model...")
@@ -132,3 +133,36 @@ class LogisticRegression(object):
     def accuracy(self, y_test, preds):
         """Assess accuracy of predictions from trained model"""
         pass
+
+    @property
+    def get_weights(self):
+        return self.trained_params
+
+    @property
+    def get_gradients(self):
+        return self.trained_grads
+
+
+class SoftmaxRegression(LogisticRegression):
+    """docstring for SoftmaxRegression."""
+    def __init__(self,
+                 hyperparameters,
+                 weight_initializer='random_normal',
+                 bias_initializer='zeros'):
+        super().__init__(hyperparameters, weight_initializer, bias_initializer)
+
+    def print_model(self, X_train, y_train):
+        alpha = self.hyperparameters['learning_rate']
+        epochs = self.hyperparameters['training_iters']
+        m, n = X_train.shape[0], X_train.shape[1]
+        k_classes = y_train.shape[1]
+        w = self.weight_initializer((n, 1))
+        b = self.bias_initializer((k_classes, 1))
+        print("\nPrinting Model Configuration:")
+        print("Learning Rate: ", alpha)
+        print("Training Iterations: ", epochs)
+        print("Training Examples: ", m)
+        print("Features: ", n)
+        print("k-Classes: ", k_classes)
+        print("Weight Dims: ", w.shape)
+        print("Bias Dims: ", b.shape)
