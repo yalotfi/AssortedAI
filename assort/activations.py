@@ -6,10 +6,10 @@ def sigmoid(z):
     return 1 / (1 + np.exp(-z))
 
 
-def softmax(z, axis=1):
+def softmax(z):
     """Softmax activation function (generalized sigmoid)"""
     z -= np.max(z)
-    return np.exp(z) / np.sum(np.exp(z), axis=axis, keepdims=True)
+    return np.exp(z) / np.sum(np.exp(z), axis=0)
 
 
 def tanh(z):
