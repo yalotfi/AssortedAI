@@ -1,6 +1,5 @@
 import numpy as np
 import time as t
-import matplotlib.pyplot as plt
 import sys
 import os
 import pprint as pp
@@ -11,6 +10,38 @@ from assort.preprocessing.one_hot import one_hot_encode
 from assort.regression.softmax import SoftmaxRegression
 
 from assort.activations import softmax
+
+
+def train():
+    # Train Logistic Regression model
+    cost_cache = []
+    X = X_train_norm.T
+    Y = y_train_k.T
+    n, m = X.shape[0], X.shape[1]
+    k = Y.shape[0]
+    w = np.random.rand(n, k) * 0.01
+    b = np.zeros((k, 1))
+    for i in range(1000):
+        # Forward Prop
+        Z = np.dot(w.T, X) + b
+        A = softmax(Z)
+        cost = -np.sum(Y * np.log(A))
+        # Back prop
+        dZ = Y - A
+        dw = -(1 / m) * np.dot(X, dZ.T)
+        db = -(1 / m) * np.sum(dZ)
+        # Update
+        w = w - 0.0001 * dw
+        b = b - 0.0001 * db
+        # Save cost
+        if i % 100 == 0:
+            print(cost)
+            cost_cache.append(cost)
+
+    plt.plot(cost_cache)
+    plt.ylabel('Training Cost')
+    plt.xlabel('Training Iteration')
+    plt.show()
 
 
 def main():
@@ -28,48 +59,13 @@ def main():
     y_train_k = one_hot_encode(y_train, 10)
     y_test_k = one_hot_encode(y_test, 10)
 
-    # # Testing softmax function - correctly produces probability distribution
-    # print(softmax([1.2, 0.9, 0.4]))
-    # print(np.sum(softmax([1.2, 0.9, 0.4])))
-
-    # Train Logistic Regression model
-    cost_cache = []
-    X = X_train_norm.T
-    Y = y_train_k.T
-    n, m = X.shape[0], X.shape[1]
-    k = Y.shape[0]
-    w = np.zeros((n, k))
-    b = np.zeros((k, 1))
-    Z = np.dot(w.T, X) + b
-    print(Z.shape)
-    pp.pprint(Z[:, 0])
-
-
-    # A = softmax(Z)
-    # print(Z[:, 0])
-    # for i in range(1000):
-    #     # Forward Prop
-    #     A = softmax(np.dot(w.T, X) + b)
-    #     cost = -np.sum(Y - np.log(A))
-    #     # Back prop
-    #     dw = -(1 / m) * np.dot(X, (A - Y).T)
-    #     db = -(1 / m) * np.sum(A - Y)
-    #     # Update
-    #     w = w - 0.001 * dw
-    #     b = b - 0.001 * db
-    #     # Save cost
-    #     if i % 100 == 0:
-    #         print(cost)
-    #         cost_cache.append(cost)
-    #
-    # plt.plot(cost_cache)
-    # plt.ylabel('Training Cost')
-    # plt.xlabel('Training Iteration')
-    # plt.show()
-
-
-    # model = SoftmaxRegression(hyperparameters)
-    # model.gradient_descent(X_train_norm.T, y_train_k.T)
+    X, Y = X_train_norm.T, y_train_k.T
+    print(X.shape)
+    print(Y.shape)
+    model = SoftmaxRegression()
+    model = model.gradient_descent(X, Y)
+    model.show_error()
+    # model.test_train(X, Y)
 
 if __name__ == '__main__':
     main()
