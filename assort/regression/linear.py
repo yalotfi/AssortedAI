@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from assort.cost_functions import mse
+from assort.cost_functions import MeanSquaredError
 from assort import _INITIALIZER_CONFIG
 
 
@@ -9,68 +9,68 @@ class LinearRegression(object):
     """OLS regression trained with Stochastic Gradient Descent
 
     Attributes:
-        hyperparamters -- python dictionary storing:
-            "learning_rate": float32, alpha that scaled parameter update
-            "epochs": -- int, number of passes over training set
+        X_train -- training feature matrix with shape (m, n)
+        y_train -- training label vector with shape (m, 1)
+        weight_initializer -- how to initialize model parameters
         cost_cache -- numpy array of historical training error
         trained_params -- python dictionary storing:
             "theta" -- ndarray - optimized model parameters
 
     Methods:
         hypothesis -- h(theta) function
-        train_sgd -- perform stochastic gradient descent
+        gradient_descent -- perform gradient descent
         predict -- make prediction after fitting linear regresion
         plot_error -- plot cost after each training iteration
     """
 
-    def __init__(self, hyperparamters, bias_initializer='zeros'):
-        self.hyperparamters = hyperparamters
+    def __init__(self, X_train, y_train, weight_initializer='zeros'):
+        # Get training features and labels
+        self.X_train = X_train
+        self.y_train = y_train
 
         # Set parameter initializer
-        if bias_initializer in _INITIALIZER_CONFIG:
-            self.bias_initializer = _INITIALIZER_CONFIG[bias_initializer]()
+        if weight_initializer in _INITIALIZER_CONFIG:
+            self.weight_initializer = _INITIALIZER_CONFIG[weight_initializer]()
 
         # Assigned when model is training
-        self.cost_cache = np.zeros(self.hyperparamters["epochs"])
+        self.cost_cache = []
         self.trained_params = {}
 
-    def hypothesis(self, X, theta):
+    def _hypothesis(self, X, theta):
         return np.dot(X, theta)
 
-    def train_sgd(self, X_train, y_train, print_cost_freq=100):
+    def gradient_descent(self, alpha, epochs, print_cost_freq=100):
         """Fit OLS Regression with Stochastic Gradient Descent
 
         Arguments:
-            X_train -- training feature matrix with shape (m, n)
-            y_train -- training label vector with shape (m, 1)
+            alpha -- Learning rate
+            epochs -- Training iterations
             print_cost_freq -- print cost when train iter mod freq = 0
 
         Return:
             self
         """
         # Initial housekeeping before running SGD
-        alpha = self.hyperparamters["learning_rate"]
-        epochs = self.hyperparamters["epochs"]
-        m, n = X_train.shape[0], X_train.shape[1]
-        theta = self.bias_initializer((n + 1, 1))
-        X = np.c_[np.ones((m, 1)), X_train]
-        print("Initialized params to zero...\n")
+        m, n = self.X_train.shape[0], self.X_train.shape[1]
+        theta = self.weight_initializer((n + 1, 1))
+        X_ = np.c_[np.ones((m, 1)), self.X_train]
+        Y = self.y_train
 
         # Start running SGD
         print("Training model...")
         for i in range(epochs):
             # 1) Make prediction
-            y_hat = self.hypothesis(X, theta)
+            y_hat = self._hypothesis(X_, theta)
+            mse = MeanSquaredError(Y, y_hat, X_)
 
             # 2) Compute error of prediction and store it in cache
-            cost = mse(y_hat, y_train)
-            self.cost_cache[i] = cost
+            cost = mse.get_cost
+            self.cost_cache.append(cost)
             if i % print_cost_freq == 0:
                 print("Error at iteration {}: {}".format(i, cost))
 
             # 3) Update parameters, theta, by learning rate and gradient
-            grads = mse(y_hat, y_train, derivative=True, X=X)
-            theta = theta - alpha * grads
+            theta = theta - alpha * mse.get_grad
 
         # Save optimized parameters
         self.trained_params = {"theta": theta}

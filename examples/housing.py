@@ -25,8 +25,8 @@ def main():
     }
 
     # Fit Linear Regression model
-    model = LinearRegression(hyperparameters)
-    model = model.train_sgd(X_norm, y_train, print_cost_freq=10)
+    model = LinearRegression(X_norm, y_train)
+    model = model.gradient_descent(alpha=0.03, epochs=100, print_cost_freq=10)
 
     # Visualize training error over each iteration
     model.plot_error()
