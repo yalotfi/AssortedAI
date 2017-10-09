@@ -1,6 +1,34 @@
 import numpy as np
 
 
+class MeanSquaredError(object):
+    """docstring for MeanSquaredError"""
+
+    def __init__(self, labels, preds, examples=None):
+        try:
+            assert(labels.shape == preds.shape)
+        except ValueError:
+            print("Actual and predicted label dimensions must match!")
+        self.m = labels.shape[0]
+        self.y_true = labels
+        self.y_hat = preds
+        self.loss = self.y_hat - self.y_true
+        self.m = self.y_hat.shape[0]
+        self.X = examples
+
+    @property
+    def get_cost(self):
+        return (1 / (2 * self.m)) * np.sum(np.square(self.loss))
+
+    @property
+    def get_grad(self):
+        try:
+            assert(self.X is not None)
+        except ValueError:
+            print("Must provide feature matrix, X, to compute derivative!")
+        return (1 / self.m) * np.dot(self.X.T, self.loss)
+
+
 def mse(y_hat, y_train, derivative=False, X=None):
     """Mean Squared Error
 
@@ -38,7 +66,7 @@ def mse(y_hat, y_train, derivative=False, X=None):
         return (1 / (2 * m)) * np.sum(np.square(loss))
 
 
-def cross_entropy(y_hat, y_train, derivative=False, X=None):
+def binary_cross_entropy(y_hat, y_train, derivative=False, X=None):
     """Categorical cross entropy
 
     Arguments:
@@ -82,3 +110,18 @@ def cross_entropy(y_hat, y_train, derivative=False, X=None):
         return grads
     else:
         return -(1 / m) * np.sum(y_train * np.log(y_hat) + (1 - y_train) * np.log(1 - y_hat))
+
+
+def categorical_cross_entropy(y_hat, y_label, derivative=False, X=None):
+    m = y_label.shape[1]
+    if derivative:
+        dZ = y_label - y_hat
+        dw = -(1 / m) * np.dot(X, dZ.T)
+        db = -(1 / m) * np.sum(dZ)
+        grads = {
+            "dw": dw,
+            "db": db
+        }
+        return grads
+    else:
+        return -(1 / m) * np.sum(y_hat * np.log(y_label))
