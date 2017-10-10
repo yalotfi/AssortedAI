@@ -1,8 +1,8 @@
 import numpy as np
 
-from assort.activations import sigmoid
-from assort.cost_functions import cross_entropy
 from assort import _INITIALIZER_CONFIG
+from assort.activations import sigmoid
+from assort.cost_functions import BinaryCrossEntropy
 
 
 class LogisticRegression(object):
@@ -25,6 +25,7 @@ class LogisticRegression(object):
         plot_cost -- plot training error over number of training iterations
         #############
     """
+
     def __init__(self,
                  hyperparameters,
                  weight_initializer='random_normal',
@@ -69,11 +70,14 @@ class LogisticRegression(object):
         print("Training model...")
         for i in range(epochs):
             # Forward pass computes prediction and its loss
-            y_hat =  self._hypothesis(X_train, w, b)
-            cost = cross_entropy(y_hat, y_train)
+            y_hat = self._hypothesis(X_train, w, b)
+            # cost = cross_entropy(y_hat, y_train)
+            bce = BinaryCrossEntropy(y_train, y_hat, X_train)
+            cost = bce.get_cost
 
             # Backward pass computes gradient of loss w respect to each param
-            grads = cross_entropy(y_hat, y_train, derivative=True, X=X_train)
+            # grads = cross_entropy(y_hat, y_train, derivative=True, X=X_train)
+            grads = bce.get_grads
 
             # Assertions gradient and paramter dims
             assert(grads['dw'].shape == w.shape)

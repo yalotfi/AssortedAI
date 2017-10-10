@@ -1,8 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from assort.cost_functions import MeanSquaredError
 from assort import _INITIALIZER_CONFIG
+from assort.cost_functions import MeanSquaredError
 
 
 class LinearRegression(object):
@@ -36,9 +36,6 @@ class LinearRegression(object):
         self.cost_cache = []
         self.trained_params = {}
 
-    def _hypothesis(self, X, theta):
-        return np.dot(X, theta)
-
     def gradient_descent(self, alpha, epochs, print_cost_freq=100):
         """Fit OLS Regression with Stochastic Gradient Descent
 
@@ -60,10 +57,10 @@ class LinearRegression(object):
         print("Training model...")
         for i in range(epochs):
             # 1) Make prediction
-            y_hat = self._hypothesis(X_, theta)
-            mse = MeanSquaredError(Y, y_hat, X_)
+            y_hat = np.dot(X_, theta)
 
             # 2) Compute error of prediction and store it in cache
+            mse = MeanSquaredError(Y, y_hat, X_)
             cost = mse.get_cost
             self.cost_cache.append(cost)
             if i % print_cost_freq == 0:
@@ -85,6 +82,7 @@ class LinearRegression(object):
         return np.dot(X_, theta)
 
     def plot_error(self):
+        """Simply plot the model error over training"""
         print("Plotting model error...\n")
         plt.plot(self.cost_cache)
         plt.ylabel('Training Cost')

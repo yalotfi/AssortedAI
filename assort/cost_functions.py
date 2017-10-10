@@ -92,7 +92,20 @@ class BinaryCrossEntropy(CostFunction):
 
 
 class CategoricalCrossEntropy(CostFunction):
-    """CategoricalCrossEntropy"""
+    """CategoricalCrossEntropy
+
+    Arguments:
+        y_train -- actual labels -  vector with shape (m, 1)
+        y_hat -- predicted labels - vector with shape (m, 1)
+        X -- feature matrix, X, with shape (m, n)
+
+    Properties:
+        get_cost: Returns error between predicted and actual labels
+        get_grad: Returns gradient of cost with respect to parameters
+
+    Raises:
+        ValueError: Check dimensions of input arrays
+    """
 
     def __init__(self, y_train, y_hat, X_train):
         super().__init__(y_train, y_hat, X_train)
