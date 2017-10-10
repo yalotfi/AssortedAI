@@ -51,7 +51,7 @@ class MeanSquaredError(CostFunction):
         return (1 / (2 * self.m)) * np.sum(np.square(self.loss))
 
     @property
-    def get_grad(self):
+    def get_grads(self):
         return (1 / self.m) * np.dot(self.X_train.T, self.loss)
 
 
@@ -76,8 +76,8 @@ class BinaryCrossEntropy(CostFunction):
 
     @property
     def get_cost(self):
-        case_true = (1 - self.y_train) * np.log(1 - self.y_hat)
-        case_false = self.y_train * np.log(self.y_hat)
+        case_true = self.y_train * np.log(self.y_hat)
+        case_false = (1 - self.y_train) * np.log(1 - self.y_hat)
         return -(1 / self.m) * np.sum(case_true + case_false)
 
     @property

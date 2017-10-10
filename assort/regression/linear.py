@@ -25,7 +25,7 @@ class LinearRegression(object):
 
     def __init__(self, X_train, y_train, weight_initializer='zeros'):
         # Get training features and labels
-        self.X_train = X_train
+        self.X_train = np.c_[np.ones((m, 1)), X_train]
         self.y_train = y_train
 
         # Set parameter initializer
@@ -35,6 +35,7 @@ class LinearRegression(object):
         # Assigned when model is training
         self.cost_cache = []
         self.trained_params = {}
+        self.trained_grads = {}
 
     def gradient_descent(self, alpha, epochs, print_cost_freq=100):
         """Fit OLS Regression with Stochastic Gradient Descent
@@ -50,29 +51,27 @@ class LinearRegression(object):
         # Initial housekeeping before running SGD
         m, n = self.X_train.shape[0], self.X_train.shape[1]
         theta = self.weight_initializer((n + 1, 1))
-        X_ = np.c_[np.ones((m, 1)), self.X_train]
-        Y = self.y_train
 
         # Start running SGD
         print("Training model...")
         for i in range(epochs):
             # 1) Make prediction
             y_hat = np.dot(X_, theta)
-
-            # 2) Compute error of prediction and store it in cache
-            mse = MeanSquaredError(Y, y_hat, X_)
+            # 2) Compute loss and gradients of parameters
+            mse = MeanSquaredError(self.y_train, y_hat, self.X_train)
             cost = mse.get_cost
+            grads = mse.get_grads
+            # 3) Update parameters, theta, by learning rate and gradient
+            theta = theta - alpha * grads
+            # 4) Save and print cost after every training iteration
             self.cost_cache.append(cost)
             if i % print_cost_freq == 0:
                 print("Error at iteration {}: {}".format(i, cost))
 
-            # 3) Update parameters, theta, by learning rate and gradient
-            theta = theta - alpha * mse.get_grad
-
         # Save optimized parameters
         self.trained_params = {"theta": theta}
-
-        print("Model is trained...\n")
+        self.trained_grads = {"grads": grads}
+        print("Model is trained, optimized results stored...\n")
         return self
 
     def predict(self, X):

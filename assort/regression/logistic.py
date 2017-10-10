@@ -9,9 +9,8 @@ class LogisticRegression(object):
     """Logistic regression trained on Stochastic Gradient Descent
 
     Attributes:
-        hyperparameters -- python dictionary defining model hyperparameters
-                "training_iters": int, ideally multiple of 100
-                "learning_rate": float32, scales parameter update rule
+        X_train -- train set, feature matrix (m, n)
+        y_train -- train set, label vector (m, k)
         cost_cache -- python list storing historical training error
         trained_params -- dictionary storing optimized params
         trained_grads -- dictionary storing optimized gradients
@@ -27,12 +26,15 @@ class LogisticRegression(object):
     """
 
     def __init__(self,
-                 hyperparameters,
+                 X_train,
+                 y_train,
                  weight_initializer='random_normal',
                  bias_initializer='zeros'):
-        self.hyperparameters = hyperparameters
+        # Get training features and labels
+        self.X_train = X_train
+        self.y_train = y_train
 
-        # Set paramter initializer
+        # Set paramter initializers
         if weight_initializer in _INITIALIZER_CONFIG:
             self.weight_initializer = _INITIALIZER_CONFIG[weight_initializer]()
         if bias_initializer in _INITIALIZER_CONFIG:
@@ -43,25 +45,19 @@ class LogisticRegression(object):
         self.trained_params = {}
         self.trained_grads = {}
 
-    def _hypothesis(self, X, w, b):
-        Z = np.dot(X, w) + b
-        return sigmoid(Z)
-
-    def gradient_descent(self, X_train, y_train, print_cost_freq=100):
+    def gradient_descent(self, alpah, epochs, print_cost_freq=100):
         """Fit model to training data with stochastic gradient descent
 
         Arguments:
-            X_train -- train set, feature matrix (m, n)
-            y_train -- train set, label vector (m, k)
+            alpha -- Learning rate
+            epochs -- Training iterations
             print_cost_freq -- how often to print cost
 
         Return:
             self
         """
         # Define helper variables: iters, learning rate, dim, params
-        alpha = self.hyperparameters['learning_rate']
-        epochs = self.hyperparameters['training_iters']
-        m, n = X_train.shape[0], X_train.shape[1]
+        m, n = self.X_train.shape[0], self.X_train.shape[1]
         k_classes = y_train.shape[1]
         w = self.weight_initializer((n, 1))
         b = self.bias_initializer((1, k_classes))
@@ -69,28 +65,18 @@ class LogisticRegression(object):
         # Training with gradient descent
         print("Training model...")
         for i in range(epochs):
-            # Forward pass computes prediction and its loss
-            y_hat = self._hypothesis(X_train, w, b)
-            # cost = cross_entropy(y_hat, y_train)
+            # 1) Make prediction
+            y_hat = sigmoid(np.dot(X, w) + b)
+            # 2) Compute loss and gradients of parameters
             bce = BinaryCrossEntropy(y_train, y_hat, X_train)
             cost = bce.get_cost
-
-            # Backward pass computes gradient of loss w respect to each param
-            # grads = cross_entropy(y_hat, y_train, derivative=True, X=X_train)
             grads = bce.get_grads
-
-            # Assertions gradient and paramter dims
-            assert(grads['dw'].shape == w.shape)
-            assert(grads['db'].dtype == float)
-            assert(cost.shape == ())
-
-            # Update rule for tweaking parameters
+            # 3) Update weights and bias
             w = w - alpha * grads['dw']
             b = b - alpha * grads['db']
-
-            # Record model error every 100 iterations
+            # 4) Save and print cost after every training iteration
+            self.cost_cache.append(cost)
             if i % print_cost_freq == 0:
-                self.cost_cache.append(cost)
                 print('Error after {} epochs: {}'.format(i, cost))
 
         # Store optimized parameters
@@ -103,7 +89,6 @@ class LogisticRegression(object):
             'dw': grads['dw'],
             'db': grads['db']
         }
-
         print("Model is trained, optimized results stored...\n")
         return self
 
