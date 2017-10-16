@@ -3,10 +3,10 @@ import os
 
 # Add AssortedAI to system path for development
 sys.path.insert(0, os.path.join(os.getcwd()))
-from assort.preprocessing import norm
-from assort.regression.linear import LinearRegression
 from assort.utils.load_datasets import get_housing
-
+from assort.preprocessing import norm
+from assort.optimizers import GradientDescent
+from assort.regression.linear import LinearRegression
 
 def main():
     X_train, y_train, X_test = get_housing()
@@ -18,15 +18,10 @@ def main():
     X_norm = norm.standardize(X_train)
     X_test = norm.standardize(X_test)
 
-    # Define model hyperparamters for LinReg
-    hyperparameters = {
-        "learning_rate": 0.03,
-        "epochs": 100
-    }
-
     # Fit Linear Regression model
     model = LinearRegression(X_norm, y_train)
-    model = model.gradient_descent(alpha=0.03, epochs=100, print_cost_freq=10)
+    sgd = GradientDescent(learning_rate=0.03, epochs=100)
+    model = model.fit(sgd, print_cost_freq=10)
 
     # Visualize training error over each iteration
     model.plot_error()
