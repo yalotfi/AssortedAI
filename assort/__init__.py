@@ -1,5 +1,5 @@
 from assort.initializers import *
-from assort.cost_functions import MeanSquaredError
+from assort.cost_functions import *
 
 _INITIALIZER_CONFIG = {
     'zeros': Zeros,
@@ -8,5 +8,7 @@ _INITIALIZER_CONFIG = {
 }
 
 _COST_FUNC_CONFIG = {
-    'mse': MeanSquaredError
+    'mean_squared_error': MeanSquaredError,
+    'binary_cross_entropy': BinaryCrossEntropy,
+    'categorical_cross_entropy': CategoricalCrossEntropy
 }
