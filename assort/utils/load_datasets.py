@@ -44,14 +44,18 @@ def get_iris():
     fname = "iris.data"
     directory = os.path.join('assort', 'datasets', 'iris')
     filepath = download(url, fname, directory)
-    features = []
-    labels = []
+    classes = ['Iris-setosa', 'Iris-versicolor', 'Iris-virginica']
+    X = []
+    y = []
     with open(filepath, 'r') as f:
         csvreader = csv.reader(f, delimiter=',')
         for row in csvreader:
-            features.append(row[:-1])
-            labels.append(row[-1:])
-    return features[:-1], labels[:-1]
+            if len(row) == 5:
+                X.append(row[:-1])
+                y.append(classes.index(row[-1]))
+            else:  # Last empty row can just be ignored
+                break;
+    return X, y
 
 
 def get_mnist(download=True, serialize=False,
