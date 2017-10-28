@@ -4,6 +4,7 @@ import numpy as np
 
 from assort.utils.download_util import download
 from assort.utils.mnist_util import MNISTReader
+from assort.preprocessing.sampling import train_test_split
 
 
 def get_profit():
@@ -39,7 +40,7 @@ def get_housing():
     return (X_train, y_train, X_test)
 
 
-def get_iris():
+def get_iris(seed):
     url = 'https://archive.ics.uci.edu/ml/machine-learning-databases/iris/'
     fname = "iris.data"
     directory = os.path.join('assort', 'datasets', 'iris')
@@ -54,8 +55,10 @@ def get_iris():
                 X.append(row[:-1])
                 y.append(classes.index(row[-1]))
             else:  # Last empty row can just be ignored
-                break;
-    return X, y
+                pass
+    np_X = np.asarray(X, dtype=np.float32)
+    np_y = np.asarray(y, dtype=np.float32).reshape((len(y), 1))
+    return train_test_split(np_X, np_y, seed=seed)
 
 
 def get_mnist(download=True, serialize=False,
