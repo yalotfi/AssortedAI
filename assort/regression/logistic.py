@@ -26,14 +26,8 @@ class LogisticRegression(object):
     """
 
     def __init__(self,
-                 X_train,
-                 y_train,
                  weight_initializer='random_normal',
                  bias_initializer='zeros'):
-        # Get training features and labels
-        self.X_train = X_train
-        self.y_train = y_train
-
         # Set paramter initializers
         if weight_initializer in _INITIALIZER_CONFIG:
             self.weight_initializer = _INITIALIZER_CONFIG[weight_initializer]()
@@ -45,7 +39,7 @@ class LogisticRegression(object):
         self.trained_params = {}
         self.trained_grads = {}
 
-    def gradient_descent(self, alpah, epochs, print_cost_freq=100):
+    def gradient_descent(self, X, y, alpha, epochs, print_cost_freq=10):
         """Fit model to training data with stochastic gradient descent
 
         Arguments:
@@ -57,8 +51,8 @@ class LogisticRegression(object):
             self
         """
         # Define helper variables: iters, learning rate, dim, params
-        m, n = self.X_train.shape[0], self.X_train.shape[1]
-        k_classes = y_train.shape[1]
+        m, n = X.shape[0], X.shape[1]
+        k_classes = y.shape[1]
         w = self.weight_initializer((n, 1))
         b = self.bias_initializer((1, k_classes))
 
@@ -68,7 +62,7 @@ class LogisticRegression(object):
             # 1) Make prediction
             y_hat = sigmoid(np.dot(X, w) + b)
             # 2) Compute loss and gradients of parameters
-            bce = BinaryCrossEntropy(y_train, y_hat, X_train)
+            bce = BinaryCrossEntropy(y, y_hat, X)
             cost = bce.get_cost
             grads = bce.get_grads
             # 3) Update weights and bias

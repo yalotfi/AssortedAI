@@ -56,7 +56,7 @@ class SoftmaxRegression(object):
         grads = self._compute_grad(X, Y, A)
         return cost, grads
 
-    def gradient_descent(self, X, Y, alpha=0.00001):
+    def gradient_descent(self, X, Y, alpha=0.0005):
         n, m = X.shape[0], X.shape[1]
         k = Y.shape[0]
         init_params = self._init_params_zeros(n, k)
@@ -76,7 +76,7 @@ class SoftmaxRegression(object):
         self.trained_grads = {"dw": dw, "db": db}
         return self
 
-    def show_error(self):
+    def plot_error(self):
         plt.plot(self.cost_cache)
         plt.ylabel('Training Cost')
         plt.xlabel('Training Iteration')

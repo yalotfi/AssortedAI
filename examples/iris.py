@@ -3,25 +3,23 @@ import os
 import pprint as pp
 import numpy as np
 
+
 sys.path.insert(0, os.path.join(os.getcwd()))
 from assort.utils import load_datasets
-# from assort.regression.softmax import SoftmaxRegression
+from assort.preprocessing import sampling
+from assort.regression.softmax import SoftmaxRegression
 
 
 def main():
-    # (X_train, y_train), (X_test, y_test) = get_iris()
-    X, y = load_datasets.get_iris()
-    # print(np.array(features, dtype='f8'))
-    # print(np.unique(np.array(labels)))
-    pp.pprint(X)
-    pp.pprint(y)
+    (X_train, y_train), (X_test, y_test) = load_datasets.get_iris(99)
+    print(X_train.T.shape)
+    print(y_train.T.shape)
+    print(X_test.shape)
+    print(y_test.shape)
 
-    # hyperparams = {
-    #     "training_iters": 2500,
-    #     "learning_rate": 0.001,
-    #     "init_param_bound": 0.01
-    # }
-    # model = SoftmaxRegression(X.T, Y.T, hyperparams)
+    model = SoftmaxRegression()
+    model.gradient_descent(X_train.T, y_train.T)
+    model.plot_error()
 
 
 if __name__ == '__main__':
