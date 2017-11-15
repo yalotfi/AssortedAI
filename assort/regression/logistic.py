@@ -90,6 +90,47 @@ class LinearClassifier(object):
         logprobs = np.log(Y_hat)
         return -np.sum(Y * logprobs)
 
+    def _batch_gradient_descent(propagate, X, y):
+        """
+        Perform the batch gradient descent algorithm
+
+        Arguments
+        ---------
+        propagate : callback
+            Function that computes the cost and gradient of a single pass
+        X : ndarray
+            Training features
+        y : ndarray
+            Trainging labels
+        """
+        # Helpers: dimensionality and classes
+        m, n = X.shape[0], X.shape[1]
+        k = Y.shape[1]
+
+        # Initialize model parameters (weights and bias)
+        w, b = self._init_zeros(n, k)
+
+        cost_cache = []
+        for i in range(self._epochs):
+            # Perform single pass of forward and backward propagation
+            cost, grads = propagate(X, y, w, b)
+            dw = grads["dw"]
+            db = grads["db"]
+
+            # Update model parameters
+            w = w - self._alpha * dw
+            b = b - self._alpha * db
+
+            # Store the cost for each iteration
+            cost_cache.append(cost)
+            if i % 100 == 0:
+                print("Cost after iteration {}: {}".format(i, cost))
+
+        # Store trained parameters and their gradients
+        parameters = {"w": w, "b": b}
+        gradients = {"dw": dw, "db": db}
+        return parameters, gradients, cost_cache
+
 
 class LogisticRegression(LinearClassifier):
     """
@@ -112,6 +153,15 @@ class LogisticRegression(LinearClassifier):
         Trained parameters
     trained_grads : dictionary
         Trained parameter gradients
+
+    Methods
+    -------
+    fit
+        Train model with batch gradient descent
+    predict
+        Make predictions for input data
+    evaluate
+        Compute the mean accuracy measure for the model
     """
 
     def __init__(self, epochs=1, lr=0.05, lmda=0.01):
@@ -136,33 +186,180 @@ class LogisticRegression(LinearClassifier):
             grads = {"dw": dw, "db": db}
             return grads, cost
 
-    def batch_gradient_descent(X, y):
-        # Helpers: dimensionality and classes
-        m, n = X.shape[0], X.shape[1]
-        k = 1
+    def fit(X, y):
+        params, grads, cost_cache = self._batch_gradient_descent(
+            self._propagate, X, y)
 
-        # Initialize model parameters (weights and bias)
-        w, b = self._init_zeros(n, k)
+        # Store trained parameters, their gradients and cost history
+        self.cost_cache = cost_cache
+        self.trained_params = {"w": w, "b": b}
+        self.trained_grads = {"dw": dw, "db": db}
+        return self
 
-        for i in range(self._epochs):
-            # Perform single pass of forward and backward propagation
-            cost, grads = self._propagate(X, y, w, b)
-            dw = grads["dw"]
-            db = grads["db"]
+    # def predict(X):
+    #     """
+    #     Predict classes given input data
+    #
+    #     This method uses the trained parameters learned during training. Use
+    #     after training!
+    #
+    #     Arguments
+    #     ---------
+    #     X : ndarray
+    #         Input data, X, to predict
+    #
+    #     Returns
+    #     -------
+    #     ndarray
+    #         Predicted classes for each input feature, X
+    #     """
+    #     w = self.trained_params["w"]
+    #     b = self.trained_params["b"]
+    #     Y_hat = self._hypothesis(X, w, b)
+    #     Y_pred = np.argmax(Y_hat, axis=1)
+    #     return Y_pred
+    #
+    # def evaluate(X_test, y_test):
+    #     """
+    #     Compute the mean accuracy of the trained classifier
+    #
+    #     This method uses the trained parameters learned during training. Use
+    #     after training! Furthermore, y_test should not be one-hot encoded to
+    #     match the predictions which collapse to a vector as well.
+    #
+    #     Arguments
+    #     ---------
+    #     X_test : ndarray
+    #         Test features to evaluate of shape (m, n)
+    #     y_test : ndarray
+    #         Test labels to evaluate of shape (m, 1)
+    #
+    #     Returns
+    #     -------
+    #     float
+    #         Ratio of correct labels to incorrect labels
+    #     """
+    #     w = self.trained_params["w"]
+    #     b = self.trained_params["b"]
+    #     y_hat = np.argmax(self._hypothesis(X, w, b), axis=1)
+    #     test_acc = np.mean(np.abs(y_hat - y_test))
 
-            # Update model parameters
-            w = w - self._alpha * dw
-            b = b - self._alpha * db
 
-            # Cache and print model training error
-            cost_cache.append(cost)
-            if i % 100 == 0:
-                print("Cost after iteration {}: {}".format(i, cost))
+class SoftmaxRegression(LinearClassifier):
+    """
+    Softmax regression trained with Batch Gradient Descent
 
-        # Return trained parameters and their gradients
-        parameters = {"w": w, "b": b}
-        gradients = {"dw": dw, "db": db}
-        return parameters, gradients, cost_cache
+    Arguments
+    ---------
+    epochs : int
+        Number of full passes to make over dataset when training
+    lr : float
+        Learning rate which determines size of parameter update when training
+    lmda : float
+        Degree to which training cost should be regularized
+
+    Attributes
+    ----------
+    hyperparameters : dictionary
+        Stored hyperparameters for logging
+    trained_params : dictionary
+        Trained parameters
+    trained_grads : dictionary
+        Trained parameter gradients
+
+    Methods
+    -------
+    fit
+        Train model with batch gradient descent
+    predict
+        Make predictions for input data
+    evaluate
+        Compute the mean accuracy measure for the model
+    """
+
+    def __init__(self, epochs=1, lr=0.05, lmda=0.01):
+        super().__init__(epochs, lr, lmda)
+
+    def _hypothesis(X, w, b):
+        Z = np.dot(X, w) + b
+        return softmax(Z)
+
+    def _propagate(self, X, Y, w, b):
+        # Forward Pass
+        Y_hat = self._hypothesis(X, w, b)
+        cost = self._categorical_xent(Y_hat, Y)
+
+        # Backward Pass
+        dZ = A - Y
+        dw = np.dot(X, dZ.T)
+        db = np.sum(dZ)
+
+        # Regularize the cost and gradient
+        cost += l2_reg(w, self._lmda)
+        dw += l2_reg(w, self._lmda, derivative=True)
+
+        # Return the cost and gradients
+        grads = {"dw": dw, "db": db}
+        return grads, cost
+
+    def fit(X, y):
+        params, grads, cost_cache = self._batch_gradient_descent(
+            self._propagate, X, y)
+
+        # Store trained parameters, their gradients and cost history
+        self.cost_cache = cost_cache
+        self.trained_params = {"w": w, "b": b}
+        self.trained_grads = {"dw": dw, "db": db}
+        return self
+
+    def predict(X):
+        """
+        Predict classes given input data
+
+        This method uses the trained parameters learned during training. Use
+        after training!
+
+        Arguments
+        ---------
+        X : ndarray
+            Input data, X, to predict
+
+        Returns
+        -------
+        ndarray
+            Predicted classes for each input feature, X
+        """
+        w = self.trained_params["w"]
+        b = self.trained_params["b"]
+        Y_hat = self._hypothesis(X, w, b)
+        Y_pred = np.argmax(Y_hat, axis=1)
+        return Y_pred
+
+    def evaluate(X_test, y_test):
+        """
+        Compute the mean accuracy of the trained classifier
+
+        This method uses the trained parameters learned during training. Use
+        after training! Furthermore, y_test should not be one-hot encoded to
+        match the predictions which collapse to a vector as well.
+
+        Arguments
+        ---------
+        X_test : ndarray
+            Test features to evaluate of shape (m, n)
+        y_test : ndarray
+            Test labels to evaluate of shape (m, 1)
+
+        Returns
+        -------
+        float
+            Ratio of correct labels to incorrect labels
+        """
+        w = self.trained_params["w"]
+        b = self.trained_params["b"]
+        y_hat = np.argmax(self._hypothesis(X, w, b), axis=1)
+        test_acc = np.mean(np.abs(y_hat - y_test))
+
 
 class LogisticRegression(object):
     """Logistic regression trained on Stochastic Gradient Descent

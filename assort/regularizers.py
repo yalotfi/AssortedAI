@@ -10,7 +10,7 @@ def l1_reg(w, lmda):
     w : ndarray
         Model parameters to decay by regularization term
     lmda : float
-        Regularization scale, lambda
+        Regularization constant, lambda
 
     Returns
     -------
@@ -29,7 +29,7 @@ def l2_reg(w, lmda, derivative=False):
     w : ndarray
         Model parameters to decay by regularization term
     lmda : float
-        Regularization scale, lambda
+        Regularization constant, lambda
     derivative : bool
         Choose to return derivative of L2 term for backprop. Default is False
 
