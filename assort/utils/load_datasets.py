@@ -40,7 +40,20 @@ def get_housing():
     return (X_train, y_train, X_test)
 
 
-def get_iris(seed):
+def get_spam(seed, test_size=0.3):
+    url = 'https://archive.ics.uci.edu/ml/machine-learning-databases/spambase/'
+    fname = "spambase.data"
+    directory = os.path.join('assort', 'datasets', 'spam')
+    filepath = download(url, fname, directory)
+    with open(filepath, 'r') as f:
+        emails = np.asarray(
+            [row for row in csv.reader(f, delimiter=',')], dtype=np.float32)
+    np_X = emails[:, :-1]
+    np_y = emails[:, -1].reshape(np_X.shape[0], 1)
+    return train_test_split(np_X, np_y, seed=seed, test_size=test_size)
+
+
+def get_iris(seed, test_size=0.3):
     url = 'https://archive.ics.uci.edu/ml/machine-learning-databases/iris/'
     fname = "iris.data"
     directory = os.path.join('assort', 'datasets', 'iris')
@@ -58,7 +71,7 @@ def get_iris(seed):
                 pass
     np_X = np.asarray(X, dtype=np.float32)
     np_y = np.asarray(y, dtype=np.float32).reshape((len(y), 1))
-    return train_test_split(np_X, np_y, seed=seed)
+    return train_test_split(np_X, np_y, seed=seed, test_size=test_size)
 
 
 def get_mnist(download=True, serialize=False,
