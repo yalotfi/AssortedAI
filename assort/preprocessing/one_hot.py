@@ -4,15 +4,22 @@ import numpy as np
 def one_hot_encode(labels, k_classes):
     """Encode each training label into a one-hot vector
 
-    Arguments:
-        labels - column vector with shape (m, 1)
-        k_classes - classes to encode
+    Arguments
+    ---------
+        labels : ndarray
+            Column vector with shape (m, 1)
+        k_classes : int
+            Number of classes
 
-    Return:
-        encoded_labels - matrix with shape (m, k_classes)
+    Returns
+    -------
+    ndarray
+        encoded_labels as matrix with shape (m, k_classes)
     """
-    m_examples = labels.shape[0]  # m, training examples
-    encoded_labels = np.zeros((m_examples, k_classes), dtype='float32')
-    for i in range(m_examples):
-        encoded_labels[i, labels[i]] = 1
+    m = labels.shape[0]
+    k = k_classes + 1
+    encoded_labels = np.zeros((m, k), dtype='float32')
+    for i in range(m):
+        labidx = int(labels[i][0])
+        encoded_labels[i, labidx] = 1
     return encoded_labels
