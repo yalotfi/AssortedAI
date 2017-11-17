@@ -4,9 +4,9 @@ import numpy as np
 
 sys.path.insert(0, os.path.join(os.getcwd()))
 from assort.utils.load_datasets import get_mnist
-from assort.preprocessing import norm
+from assort.preprocessing import feature_scaling as norm
 from assort.preprocessing import one_hot as ova
-from assort.regression.logistic import SoftmaxRegression
+from assort.linear.logistic import SoftmaxRegression
 
 
 def main():
@@ -22,27 +22,20 @@ def main():
     print(X_test.shape)
     print(y_test.shape)
 
-    # Perform normalization
+    # Rescale pixel values
     X_train_norm = norm.rescale(X_train)
     X_test_norm = norm.rescale(X_test)
-    # X_train_norm = norm.standardize(X_train)
-    # X_test_norm = norm.standardize(X_test)
-    print(np.mean(X_train_norm))
-    print(np.std(X_train_norm))
-    print(np.max(X_train_norm))
-    print(np.min(X_train_norm))
 
-    # Create one-hot encoded label sets:
+    # Create one-hot encoded labels:
     digit_classes = int(np.max(y_train))
     y_train_ova = ova.one_hot_encode(y_train, digit_classes)
     y_test_ova = ova.one_hot_encode(y_test, digit_classes)
 
-    model = SoftmaxRegression(epochs=1000, lr=0.005, lmda=0.05)
+    # Build the model and evaluate
+    model = SoftmaxRegression(epochs=250, lr=10e-5, lmda=10e-5)
     model.fit(X_train_norm, y_train_ova)
-    print(model.evaluate(X_train_norm, y_train_ova))
-    print(model.evaluate(X_test_norm, y_test_ova))
-    y_pred = model.predict(X_test_norm)
-    # model.test_train(X, Y)
+    print(model.evaluate(X_train_norm, y_train))
+    print(model.evaluate(X_test_norm, y_test))
 
 
 if __name__ == '__main__':

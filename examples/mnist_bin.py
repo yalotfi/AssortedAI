@@ -1,9 +1,11 @@
 import sys
 import os
+import numpy as np
 
 sys.path.insert(0, os.path.join(os.getcwd()))
 from assort.utils.load_datasets import get_mnist
-from assort.regression.logistic import LogisticRegression
+from assort.preprocessing import feature_scaling as norm
+from assort.linear.logistic import LogisticRegression
 
 
 def main():
@@ -12,17 +14,21 @@ def main():
                                                      binary=True,
                                                      bin_digits=[0, 1],
                                                      flatten=True)
-    print("Train Set:\nfeatures: {} | labels: {}\n".format(
-        X_train.shape, y_train.shape))
-    print("Test Set:\nfeatures: {} | labels: {}\n".format(
-        X_test.shape, y_test.shape))
 
-    # Perform normalization
-    X_train_norm, X_test_norm = X_train / 255, X_test / 255
+    print(X_train.shape)
+    print(y_train.shape)
+    print(X_test.shape)
+    print(y_test.shape)
 
-    # Train Logistic Regression model
-    model = LogisticRegression()
-    model.gradient_descent(X_train_norm, y_train, alpha=0.0005, epochs=100)
+    # Rescale pixel values
+    X_train_norm = norm.rescale(X_train)
+    X_test_norm = norm.rescale(X_test)
+
+    # Build the model and evaluate
+    model = LogisticRegression(epochs=400, lr=10e-5, lmda=10e-5)
+    model.fit(X_train_norm, y_train)
+    print(model.evaluate(X_train_norm, y_train))
+    print(model.evaluate(X_test_norm, y_test))
 
 
 if __name__ == '__main__':
