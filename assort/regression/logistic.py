@@ -4,7 +4,6 @@ from assort import _INITIALIZER_CONFIG
 from assort.activations import sigmoid
 from assort.activations import softmax
 from assort.regularizers import l2_reg
-from assort.cost_functions import BinaryCrossEntropy
 
 
 class LinearClassifier(object):
@@ -88,8 +87,9 @@ class LinearClassifier(object):
         float
             Cost (or loss) of predicted values
         """
+        m = Y.shape[0]
         logprobs = np.log(Y_hat)
-        return -np.sum(Y * logprobs)
+        return -(1 / m) * np.sum(Y * logprobs)
 
     def _batch_gradient_descent(self, propagate, X, y):
         """
@@ -201,12 +201,13 @@ class LogisticRegression(LinearClassifier):
         self.trained_grads = {"dw": grads["dw"], "db": grads["db"]}
         return self
 
-    def predict(self, X):
+    def predict(self, X, thresh=0.5):
         """
         Predict classes given input data
 
         This method uses the trained parameters learned during training. Use
-        after training!
+        after fitting the model! A boolean array is return comparing the
+        predicted probability to the given threshold.
 
         Arguments
         ---------
@@ -215,24 +216,14 @@ class LogisticRegression(LinearClassifier):
 
         Returns
         -------
-        ndarray
+        bool ndarray
             Predicted classes for each input feature, X
         """
         # Make a prediction about each class
         w = self.trained_params["w"]
         b = self.trained_params["b"]
-        A = self._hypothesis(X, w, b)
-
-        # Set a threshold to assign class
-        m = A.shape[0]
-        y_pred = np.zeros((m, 1))
-        print(A.shape)
-        for i in range(m):
-            if A[i, 0] < 0.5:
-                y_pred[i, 0] = 0
-            else:
-                y_pred[i, 0] = 1
-        return y_pred
+        y_pred = self._hypothesis(X, w, b) > thresh
+        return y_pred.astype(int)
 
     def evaluate(self, X_test, y_test):
         """
@@ -344,8 +335,8 @@ class SoftmaxRegression(LinearClassifier):
         """
         w = self.trained_params["w"]
         b = self.trained_params["b"]
-        Y_hat = self._hypothesis(X, w, b)
-        Y_pred = np.argmax(Y_hat, axis=1)
+        A = self._hypothesis(X, w, b)
+        Y_pred = np.argmax(A, axis=1)
         return Y_pred
 
     def evaluate(self, X_test, y_test):
@@ -368,7 +359,6 @@ class SoftmaxRegression(LinearClassifier):
         float
             Ratio of correct labels to incorrect labels
         """
-        w = self.trained_params["w"]
-        b = self.trained_params["b"]
-        Y_hat = np.argmax(self._hypothesis(X_test, w, b), axis=1)
-        return 100 - np.mean(np.abs(Y_hat - y_test)) * 100
+        Y_pred = self.predict(X_test)
+        # return (1 - np.mean(np.abs(Y_pred - y_test))) * 100
+        return np.mean(np.abs(Y_pred - y_test))
