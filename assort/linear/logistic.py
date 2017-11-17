@@ -223,7 +223,7 @@ class LogisticRegression(LinearClassifier):
         w = self.trained_params["w"]
         b = self.trained_params["b"]
         y_pred = self._hypothesis(X, w, b) > thresh
-        return y_pred.astype(int)
+        return y_pred.astype(int).reshape((y_pred.shape[0], 1))
 
     def evaluate(self, X_test, y_test):
         """
@@ -246,7 +246,7 @@ class LogisticRegression(LinearClassifier):
             Ratio of correct labels to incorrect labels
         """
         y_pred = self.predict(X_test)
-        return (1 - np.mean(np.abs(y_pred - y_test))) * 100
+        return np.mean(y_pred == y_test)
 
 
 class SoftmaxRegression(LinearClassifier):
@@ -336,8 +336,8 @@ class SoftmaxRegression(LinearClassifier):
         w = self.trained_params["w"]
         b = self.trained_params["b"]
         A = self._hypothesis(X, w, b)
-        Y_pred = np.argmax(A, axis=1)
-        return Y_pred
+        y_pred = np.argmax(A, axis=1)
+        return y_pred.reshape((y_pred.shape[0], 1))
 
     def evaluate(self, X_test, y_test):
         """
@@ -359,6 +359,5 @@ class SoftmaxRegression(LinearClassifier):
         float
             Ratio of correct labels to incorrect labels
         """
-        Y_pred = self.predict(X_test)
-        # return (1 - np.mean(np.abs(Y_pred - y_test))) * 100
-        return np.mean(np.abs(Y_pred - y_test))
+        y_pred = self.predict(X_test)
+        return np.mean(y_pred == y_test)
