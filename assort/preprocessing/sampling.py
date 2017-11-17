@@ -8,8 +8,6 @@ def train_test_split(X, y, seed, test_size=0.3):
     m_x, m_y = X.shape[0], y.shape[0]
     n_x, n_y = X.shape[1], y.shape[1]
 
-    assert m_x == m_y, "Feature and label length should match!"
-
     # 1) Join features and labels and shuffle their order
     dataset = np.column_stack([X, y])
     np.random.shuffle(dataset)
