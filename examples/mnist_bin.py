@@ -3,9 +3,9 @@ import os
 import numpy as np
 
 sys.path.insert(0, os.path.join(os.getcwd()))
-from assort.utils.load_datasets import get_mnist
-from assort.preprocessing import feature_scaling as norm
-from assort.linear.logistic import LogisticRegression
+from assort.datasets import get_mnist
+from assort.preprocessing import rescale
+from assort.linear import LogisticRegression
 
 
 def main():
@@ -21,8 +21,8 @@ def main():
     print(y_test.shape)
 
     # Rescale pixel values
-    X_train_norm = norm.rescale(X_train)
-    X_test_norm = norm.rescale(X_test)
+    X_train_norm = rescale(X_train)
+    X_test_norm = rescale(X_test)
 
     # Build the model and evaluate
     model = LogisticRegression(epochs=400, lr=10e-5, lmda=10e-5)

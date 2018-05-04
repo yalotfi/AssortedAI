@@ -3,10 +3,10 @@ import os
 
 # Add AssortedAI to system path for development
 sys.path.insert(0, os.path.join(os.getcwd()))
-from assort.utils.load_datasets import get_housing
+from assort.datasets import get_housing
 from assort.preprocessing import standardize
 from assort.optimizers import GradientDescent
-from assort.regression.linear import LinearRegression
+from assort.linear import LinearRegression
 
 def main():
     X_train, y_train, X_test = get_housing()
@@ -15,8 +15,8 @@ def main():
     print(X_test.shape)
 
     # Perform feature scaling on X_train and X_test
-    X_norm = norm.standardize(X_train)
-    X_test = norm.standardize(X_test)
+    X_norm = standardize(X_train)
+    X_test = standardize(X_test)
 
     # Fit Linear Regression model
     model = LinearRegression(X_norm, y_train)
