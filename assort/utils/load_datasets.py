@@ -4,7 +4,7 @@ import numpy as np
 
 from assort.utils.download_util import download
 from assort.utils.mnist_util import MNISTReader
-from assort.preprocessing.sampling import train_test_split
+from ..preprocessing import train_test_split
 
 
 def get_profit():
